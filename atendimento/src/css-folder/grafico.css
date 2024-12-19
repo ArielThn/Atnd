@@ -1,0 +1,170 @@
+/* Container principal */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  margin: auto;
+  width: 100%;
+  z-index: -1000;
+}
+
+/* Animação de entrada com deslize para cima */
+@keyframes slideUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Cartões de resumo */
+.summary-cards {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  z-index: -1000;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: linear-gradient(135deg, #ffffff, #f2f5f5);
+  color: #003366;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  flex-grow: 1;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideUp 0.6s ease-out;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.card h3 {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: #001e50;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #001e50;
+  margin: 0;
+  animation: fadeInUp 1s ease-in-out;
+}
+
+/* Badge estilizado para o nome da empresa */
+.badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: #003366;
+  color: #fff;
+  font-size: 0.9em;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .summary-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 90%;
+  }
+}
+
+/* Gráficos */
+.charts {
+  display: flex;
+  z-index: -1000;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+}
+
+.chart-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  height: 500px;
+  z-index: -1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideUp 0.6s ease-out;
+}
+
+
+
+.chart-card h4 {
+  font-size: 1.9em;
+  color: #003366;
+  text-align: center;
+}
+
+/* Ajustes específicos para os gráficos de barra e rosca */
+.bar-chart {
+  flex-grow: 2;
+  width: 100%;
+  margin-top: 2vw;
+  max-height: 500px; /* Define uma altura máxima para o gráfico de barras */
+}
+
+.donut-chart {
+  flex-grow: 1;
+  width: 80%;
+
+}
+
+/* Respostas para dispositivos menores */
+@media (max-width: 768px) {
+  .summary-cards, .charts {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card, .chart-card {
+    width: 90%;
+  }
+}
+
+#rosquinha {
+  width: 6px;
+}
+
+/* Animação de contagem para o número nos cartões */
+@keyframes countUp {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}

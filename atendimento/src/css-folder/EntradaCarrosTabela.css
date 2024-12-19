@@ -1,0 +1,79 @@
+.entrada-carros-tabela-container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .entrada-carros-tabela-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #003366;
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .entrada-carros-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .entrada-carros-tabela th {
+    background-color: #003366;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 12px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #002244;
+  }
+  
+  .entrada-carros-tabela td {
+    padding: 12px;
+    font-size: 14px;
+    color: #333333;
+    text-align: center;
+  }
+  
+  .entrada-carros-tabela tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  .entrada-carros-tabela tr:nth-child(odd) {
+    background-color: #ffffff;
+  }
+  
+  .entrada-carros-tabela tr:hover {
+    background-color: #e3f2fd;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  .entrada-carros-tabela td:first-child {
+    font-weight: bold;
+    color: #003366;
+  }
+  
+  .entrada-carros-tabela th:first-child {
+    border-top-left-radius: 10px;
+  }
+  
+  .entrada-carros-tabela th:last-child {
+    border-top-right-radius: 10px;
+  }
+  
+  .entrada-carros-tabela-footer {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: right;
+    color: #555;
+    font-style: italic;
+  }
+  

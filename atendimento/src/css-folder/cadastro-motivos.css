@@ -1,0 +1,170 @@
+/* Página completa com alinhamento centralizado */
+.motivos-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px); /* Considera a altura do topo, se houver */
+    width: 100%;
+    height: 100%;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  /* Animação de entrada */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Container que organiza os elementos */
+  .motivos-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  /* Card para o formulário */
+  .motivos-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 500px;
+    transform: scale(1);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .motivos-card:hover {
+    transform: scale(1.02); /* Efeito de destaque ao passar o mouse */
+  }
+  
+  /* Título */
+  .motivos-title {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* Formulário */
+  .motivos-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .motivos-label {
+    font-weight: bold;
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .motivos-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .motivos-input:focus {
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+    outline: none;
+  }
+  
+  /* Botão com animação */
+  .motivos-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .motivos-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px);
+  }
+  
+  /* Container para a tabela */
+  .motivos-table-container {
+    width: 100%;
+    max-width: 800px;
+    animation: slideUp 0.5s ease-in-out;
+  }
+  
+  /* Animação de entrada para a tabela */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .motivos-subtitle {
+    font-size: 20px;
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 15px;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* Tabela */
+  .motivos-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .motivos-table th,
+  .motivos-table td {
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    transition: background-color 0.3s ease;
+  }
+  
+  .motivos-table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .motivos-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  .motivos-table tr:hover {
+    transform: scale(1.01); /* Efeito de leve zoom */
+  }
+  
+  .empty-row {
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+    font-style: italic;
+  }
+  
