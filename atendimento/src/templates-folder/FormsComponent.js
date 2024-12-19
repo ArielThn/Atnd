@@ -12,7 +12,7 @@ function ClientForm({ isAdmin }) {
   const [telefone, setTelefone] = useState('');
   const [cpf, setCpf] = useState('');
   const [origem, setOrigem] = useState('');
-  const [intencaoCompra, setIntencaoCompra] = useState([]);
+  const [intencaoCompra, setIntencaoCompra] = useState('');
   const [acompanhantes, setAcompanhantes] = useState('');
   const [veiculoInteresse, setVeiculoInteresse] = useState('');
   const [vendedorSelecionado, setVendedorSelecionado] = useState('');

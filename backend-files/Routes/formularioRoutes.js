@@ -37,7 +37,7 @@ router.get('/formularios', authenticate, async (req, res) => {
 
 router.put('/formularios/:id', async (req, res) => {
     const { id } = req.params;
-    const { nome, telefone, cpf, origem, intencao_compra, veiculo_interesse } = req.body;
+    const { nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor } = req.body;
     
     try {
         const result = await pool.query(
@@ -47,10 +47,11 @@ router.put('/formularios/:id', async (req, res) => {
                 cpf = $3, 
                 origem = $4, 
                 intencao_compra = $5, 
-                veiculo_interesse = $6 
-            WHERE id = $7
+                veiculo_interesse = $6,
+                vendedor = $7
+            WHERE id = $8
             RETURNING *`,
-            [nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, id]
+            [nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, id]
         );
 
         // Verifica se o registro foi atualizado

@@ -13,7 +13,6 @@ const token = document.cookie
 
 if (token) {
   const decoded = jwtDecode(token);
-  console.log(decoded); // Isso exibirá o conteúdo decodificado do token
 }
 
 

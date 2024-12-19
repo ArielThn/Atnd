@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css-folder/registros.css';
+import { jwtDecode } from 'jwt-decode';
+
 
 function UserTable() {
   const [generalData, setGeneralData] = useState([]);
@@ -10,8 +12,22 @@ function UserTable() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [company, setCompany] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTable, setActiveTable] = useState('geral');
+  const [activeTable, setActiveTable] = useState('geral'); // geral, saida, entrada
+  const [origins, setOrigins] = useState([]);
+  const [intentions, setIntentions] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [vendedores, setVendedores] = useState([]);
 
+
+  const token = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('token='))
+    ?.split('=')[1];
+
+  const decoded = token ? jwtDecode(token) : null;
+  if (decoded.isAdmin){
+
+  }
   // Estados para edição
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -27,6 +43,84 @@ function UserTable() {
           minute: '2-digit',
         })}`;
   };
+  const deleteCliente = async (id) => {
+    try {
+      // Ajusta a URL para incluir o prefixo '/api'
+      const response = await fetch(`http://localhost:5000/api/deletar_cliente/${id}`, {
+        method: 'DELETE', // Método HTTP DELETE
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao deletar cliente');
+      }
+  
+      const data = await response.json();
+      alert('Cliente deletado com sucesso!');
+  
+    } catch (error) {
+      console.error('Erro ao tentar deletar cliente:', error);
+      alert('Erro ao tentar deletar cliente');
+    }
+  };
+  
+
+    useEffect(() => {
+      async function fetchOrigins() {
+        try {
+          const response = await fetch('http://localhost:5000/api/origem');
+          const data = await response.json();
+          setOrigins(data);
+        } catch (error) {
+          console.error('Erro ao buscar origens:', error);
+        }
+      }
+      fetchOrigins();
+    }, []);
+  
+    useEffect(() => {
+      async function fetchIntentions() {
+        try {
+          const response = await fetch('http://localhost:5000/api/intencao-compra');
+          const data = await response.json();
+          setIntentions(data);
+        } catch (error) {
+          console.error('Erro ao buscar intenções de compra:', error);
+        }
+      }
+      fetchIntentions();
+    }, []);
+  
+    useEffect(() => {
+      async function fetchVehicles() {
+        try {
+          const response = await fetch('http://localhost:5000/api/veiculos');
+          const data = await response.json();
+          setVehicles(data);
+        } catch (error) {
+          console.error('Erro ao buscar veículos de interesse:', error);
+        }
+      }
+      fetchVehicles();
+    }, []);
+  
+    useEffect(() => {
+      async function fetchVendedores() {
+        try {
+          const response = await fetch('http://localhost:5000/api/vendedores', { credentials: 'include' });
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setVendedores(data);
+          } else {
+            console.error('A resposta dos vendedores não é uma lista:', data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar vendedores:', error);
+        }
+      }
+      fetchVendedores();
+    }, []);
+
 
   // Função genérica de busca
   const fetchData = async (endpoint, setData, errorMessage) => {
@@ -44,32 +138,6 @@ function UserTable() {
     }
   };
 
-  const deleteCliente = async (user) => {
-    const confirmDelete = window.confirm('Você tem certeza que deseja deletar este registro?');
-  
-    if (confirmDelete) {
-      try {
-        // Fazendo o DELETE pela API (substitua a URL pela rota correta do backend)
-        const response = await fetch(`http://localhost:5000/api/deletar_cliente/${user.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-  
-        if (response.ok) {
-          // Filtra os dados para remover o cliente excluído
-          setGeneralData((prevData) => prevData.filter((item) => item.id !== user.id));
-          toast.success('Cliente deletado com sucesso!', { autoClose: 3000 });
-        } else {
-          toast.error('Erro ao deletar cliente.', { autoClose: 3000 });
-        }
-      } catch (error) {
-        console.error('Erro ao deletar cliente:', error);
-        toast.error('Erro ao deletar cliente. Tente novamente.', { autoClose: 3000 });
-      }
-    }
-  };
   // Buscar dados de cada tabela
   const fetchGeneralData = () => fetchData('formularios', setGeneralData, 'Erro ao buscar registros gerais.');
   const fetchSpecificData = () =>
@@ -77,6 +145,8 @@ function UserTable() {
   
   const fetchEntryData = () =>
     fetchData('historico-saida', setEntryData, 'Erro ao buscar registros com retorno.');
+  
+  
 
   // Alternar tabelas e buscar os dados
   useEffect(() => {
@@ -87,7 +157,7 @@ function UserTable() {
 
   // Filtrar dados com base no termo de pesquisa
   const filteredData = () => {
-    let data =
+    const data =
       activeTable === 'geral'
         ? generalData
         : activeTable === 'saida'
@@ -99,17 +169,6 @@ function UserTable() {
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
-  };
-
-  const handleFilterClick = () => {
-    // Atualiza a tabela renderizada quando o filtro é aplicado
-    fetchDataForActiveTable();
-  };
-
-  const fetchDataForActiveTable = () => {
-    if (activeTable === 'geral') fetchGeneralData();
-    else if (activeTable === 'saida') fetchSpecificData();
-    else if (activeTable === 'entrada') fetchEntryData();
   };
 
   // Funções do modal de edição (apenas na tabela geral)
@@ -140,7 +199,7 @@ function UserTable() {
         },
         body: JSON.stringify(selectedUser),
       });
-
+      console.log(selectedUser)
       if (response.ok) {
         const updatedUser = await response.json();
         setGeneralData((prevUsers) =>
@@ -167,53 +226,56 @@ function UserTable() {
     }
   };
 
-  // Renderização das tabelas
   const renderGeneralTable = () => (
-    <table className="table">
-      <thead>
+    <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <thead className="bg-[#001e50] text-white">
         <tr>
-          <th>Empresa</th>
-          <th>Nome</th>
-          <th>Telefone</th>
-          <th>CPF</th>
-          <th>Origem</th>
-          <th>Intenção de Compra</th>
-          <th>Vendedor</th>
-          <th>Veículo de Interesse</th>
-          <th>Data</th>
-          <th>Ações</th>
+          <th className="p-3 text-left">Empresa</th>
+          <th className="p-3 text-left">Nome</th>
+          <th className="p-3 text-left">Telefone</th>
+          <th className="p-3 text-left">CPF</th>
+          <th className="p-3 text-left">Origem</th>
+          <th className="p-3 text-left">Intenção de Compra</th>
+          <th className="p-3 text-left">Vendedor</th>
+          <th className="p-3 text-left">Veículo de Interesse</th>
+          <th className="p-3 text-left">Data</th>
+          <th className="p-3 text-left">Ações</th>
         </tr>
       </thead>
       <tbody>
         {filteredData().length > 0 ? (
           filteredData().map((item, index) => (
-            <tr key={index}>
-              <td>
-                {item.empresa === 1 ? "Trescinco" : item.empresa === 2 ? "Ariel" : item.empresa}
-              </td>
-              <td>{item.nome}</td>
-              <td>{item.telefone}</td>
-              <td>{item.cpf}</td>
-              <td>{item.origem}</td>
-              <td>{item.intencao_compra}</td>
-              <td>{item.vendedor}</td>
-              <td>{item.veiculo_interesse}</td>
-              <td>{formatDate(item.data_cadastro)}</td>
-              <td>
-                <div className='wrap flex justify-center align-middle'>
-                  <button className="bg-blue-500 text-white border-0 rounded-md p-2 text-sm cursor-pointer mx-2" onClick={() => openEditModal(item)}>
-                    Editar
-                  </button>
-                  <button className="bg-red-500 text-white border-0 rounded-md p-2 text-sm cursor-pointer mx-2" onClick={() => deleteCliente(item)}>
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="p-3">{item.empresa === 1 ? "Trescinco" : "Ariel"}</td>
+              <td className="p-3">{item.nome}</td>
+              <td className="p-3">{item.telefone}</td>
+              <td className="p-3">{item.cpf}</td>
+              <td className="p-3">{item.origem}</td>
+              <td className="p-3">{item.intencao_compra}</td>
+              <td className="p-3">{item.vendedor}</td>
+              <td className="p-3">{item.veiculo_interesse}</td>
+              <td className="p-3">{formatDate(item.data_cadastro)}</td>
+              <td className="p-3 flex space-x-2">
+                <button
+                  onClick={() => openEditModal(item)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                >
+                  Editar
+                </button>
+                {decoded.isAdmin && (
+                  <button
+                    onClick={() => deleteCliente(item.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
                     Deletar
                   </button>
-                </div>
+                )}
               </td>
             </tr>
           ))
         ) : (
           <tr>
-            <td colSpan="10" style={{ textAlign: 'center' }}>
+            <td colSpan="10" className="p-4 text-center text-gray-500">
               Nenhum registro encontrado.
             </td>
           </tr>
@@ -223,39 +285,34 @@ function UserTable() {
   );
 
   const renderSpecificTable = () => (
-    <table className="table">
+    <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
       <thead>
-        <tr>
-          <th>Empresa</th>
-          <th>Usuário</th>
-          <th>Vendedor</th>
-          <th>Data e Horário</th>
-          <th>Carro</th>
-          <th>Placa</th>
-          <th>Observação</th>
+        <tr className="bg-gray-200">
+          <th className="p-3 text-left">Empresa</th>
+          <th className="p-3 text-left">Usuário</th>
+          <th className="p-3 text-left">Vendedor</th>
+          <th className="p-3 text-left">Data e Horário</th>
+          <th className="p-3 text-left">Carro</th>
+          <th className="p-3 text-left">Placa</th>
+          <th className="p-3 text-left">Observação</th>
         </tr>
       </thead>
       <tbody>
         {filteredData().length > 0 ? (
           filteredData().map((item, index) => (
-            <tr key={index}>
-              <td>
-                {item.id_empresa === 1 ? "Trescinco" : item.id_empresa === 2 ? "Ariel" : item.id_empresa}
-              </td>
-              <td>{item.usuario}</td>
-              <td>{item.nome_vendedor}</td>
-              <td>{formatDate(item.data_horario)}</td>
-              <td>{item.carro}</td>
-              <td>{item.placa}</td>
-              <td className="max-w-0 overflow-hidden px-2 text-ellipsis whitespace-nowrap">
-                {item.observacao}
-              </td>
-
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="p-3">{item.id_empresa === 1 ? "Trescinco" : "Ariel"}</td>
+              <td className="p-3">{item.usuario}</td>
+              <td className="p-3">{item.nome_vendedor}</td>
+              <td className="p-3">{formatDate(item.data_horario)}</td>
+              <td className="p-3">{item.carro}</td>
+              <td className="p-3">{item.placa}</td>
+              <td className="p-3 truncate max-w-[150px]">{item.observacao}</td>
             </tr>
           ))
         ) : (
           <tr>
-            <td colSpan="7" style={{ textAlign: 'center' }}>
+            <td colSpan="7" className="p-4 text-center text-gray-500">
               Nenhum registro pendente encontrado.
             </td>
           </tr>
@@ -263,43 +320,38 @@ function UserTable() {
       </tbody>
     </table>
   );
-  
 
   const renderEntryTable = () => (
-    <table className="table">
+    <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
       <thead>
-        <tr>
-          <th>Empresa</th>
-          <th>Usuário</th>
-          <th>Vendedor</th>
-          <th>Data de Saída</th>
-          <th>Data de Retorno</th>
-          <th>Carro</th>
-          <th>Placa</th>
-          <th>Observação</th>
+        <tr className="bg-gray-200">
+          <th className="p-3 text-left">Empresa</th>
+          <th className="p-3 text-left">Usuário</th>
+          <th className="p-3 text-left">Vendedor</th>
+          <th className="p-3 text-left">Data de Saída</th>
+          <th className="p-3 text-left">Data de Retorno</th>
+          <th className="p-3 text-left">Carro</th>
+          <th className="p-3 text-left">Placa</th>
+          <th className="p-3 text-left">Observação</th>
         </tr>
       </thead>
       <tbody>
         {filteredData().length > 0 ? (
           filteredData().map((item, index) => (
-            <tr key={index}>
-              <td>
-                {item.id_empresa === 1 ? "Trescinco" : item.id_empresa === 2 ? "Ariel" : item.id_empresa}
-              </td>
-              <td>{item.usuario}</td>
-              <td>{item.nome_vendedor}</td>
-              <td>{formatDate(item.data_horario)}</td> {/* Data de saída */}
-              <td>{formatDate(item.data_retorno)}</td> {/* Data de retorno */}
-              <td>{item.carro}</td>
-              <td>{item.placa}</td>
-              <td className="max-w-0 overflow-hidden px-2 text-ellipsis whitespace-nowrap">
-                {item.observacao}
-              </td>
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="p-3">{item.id_empresa === 1 ? "Trescinco" : "Ariel"}</td>
+              <td className="p-3">{item.usuario}</td>
+              <td className="p-3">{item.nome_vendedor}</td>
+              <td className="p-3">{formatDate(item.data_horario)}</td>
+              <td className="p-3">{formatDate(item.data_retorno)}</td>
+              <td className="p-3">{item.carro}</td>
+              <td className="p-3">{item.placa}</td>
+              <td className="p-3 truncate max-w-[150px]">{item.observacao}</td>
             </tr>
           ))
         ) : (
           <tr>
-            <td colSpan="8" style={{ textAlign: 'center' }}>
+            <td colSpan="8" className="p-4 text-center text-gray-500">
               Nenhum registro com retorno encontrado.
             </td>
           </tr>
@@ -309,153 +361,186 @@ function UserTable() {
   );
 
   return (
-    <div className="min-h-screen">
-      <ToastContainer />
-      {/* Botões de alternância entre tabelas */}
-      <div className="table-toggle">
+    <div className="min-h-screen p-6">
+      <div className="flex justify-center space-x-4 mb-6 border-b pb-2">
         <button
-          className={`toggle-button ${activeTable === 'geral' ? 'active' : ''}`}
-          onClick={() => setActiveTable('geral')}
+          className={`px-4 py-2 ${
+            activeTable === "geral" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTable("geral")}
         >
           Tabela Geral
         </button>
         <button
-          className={`toggle-button ${activeTable === 'saida' ? 'active' : ''}`}
-          onClick={() => setActiveTable('saida')}
+          className={`px-4 py-2 ${
+            activeTable === "saida" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTable("saida")}
         >
           Tabela Saída
         </button>
         <button
-          className={`toggle-button ${activeTable === 'entrada' ? 'active' : ''}`}
-          onClick={() => setActiveTable('entrada')}
+          className={`px-4 py-2 ${
+            activeTable === "entrada" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTable("entrada")}
         >
           Tabela Entrada
         </button>
       </div>
-
-      {/* Filtro de pesquisa */}
-      <div className="filter-container w-[calc(100vw-120px)] px-4">
-        <input
-          type="text"
-          placeholder="Pesquisar..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        <button onClick={handleFilterClick} className="filter-button">Filtrar</button>
-        <div className="search pr-4">
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString('pt-BR', { month: 'long' })}
-              </option>
-            ))}
-          </select>
-          <select value={company} onChange={(e) => setCompany(e.target.value)}>
-            <option value="all" disabled>Todas as Empresas</option>
-            <option value="ariel">Ariel</option>
-            <option value="trescinco">Trescinco</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Renderização da tabela ativa */}
-      {activeTable === 'geral' && renderGeneralTable()}
-      {activeTable === 'saida' && renderSpecificTable()}
-      {activeTable === 'entrada' && renderEntryTable()}
-
+      
+      {activeTable === "geral" && renderGeneralTable()}
+      {activeTable === "saida" && renderSpecificTable()}
+      {activeTable === "entrada" && renderEntryTable()}
+  
       {/* Modal de Edição */}
       {showEditModal && selectedUser && (
-        <div className="modal-overlay" onClick={closeEditModal}>
-          <div className="modal-content animate-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Editar Registro</h3>
-            <form onSubmit={handleEditSubmit}>
-              <label>
-                Nome:
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={closeEditModal}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Editar Registro</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              {/* Nome */}
+              <label className="flex flex-col text-gray-700">
+                Nome *
                 <input
                   type="text"
                   name="nome"
-                  value={selectedUser.nome || ''}
+                  placeholder="Insira o nome"
+                  value={selectedUser.nome || ""}
                   onChange={handleEditChange}
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </label>
-
-              <label>
-                Telefone:
+  
+              {/* Telefone */}
+              <label className="flex flex-col text-gray-700">
+                Telefone *
                 <input
                   type="text"
                   name="telefone"
-                  value={selectedUser.telefone || ''}
-                  onChange={handleEditChange}
+                  placeholder="Insira seu telefone"
+                  value={selectedUser.telefone || ""}
+                  onChange={(e) => {
+                    const numericValue = e.target.value.replace(/\D/g, "");
+                    if (numericValue.length <= 11) {
+                      handleEditChange(e);
+                    }
+                  }}
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  maxLength={11}
                 />
               </label>
-
-              <label>
-                CPF:
+  
+              {/* CPF */}
+              <label className="flex flex-col text-gray-700">
+                CPF *
                 <input
                   type="text"
                   name="cpf"
-                  value={selectedUser.cpf || ''}
-                  onChange={handleEditChange}
+                  placeholder="Insira seu CPF"
+                  value={selectedUser.cpf || ""}
+                  onChange={(e) => {
+                    const numericValue = e.target.value.replace(/\D/g, "");
+                    if (numericValue.length <= 11) {
+                      handleEditChange(e);
+                    }
+                  }}
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  maxLength={11}
                 />
               </label>
-
-              <label>
-                Origem:
-                <input
-                  type="text"
+  
+              {/* Origem */}
+              <label className="flex flex-col text-gray-700">
+                Origem *
+                <select
                   name="origem"
-                  value={selectedUser.origem || ''}
+                  value={selectedUser.origem || ""}
                   onChange={handleEditChange}
-                />
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>Selecione a origem</option>
+                  {origins.map((origin) => (
+                    <option key={origin.id} value={origin.descricao}>
+                      {origin.descricao}
+                    </option>
+                  ))}
+                </select>
               </label>
-
-              <label>
-                Intenção de Compra:
-                <input
-                  type="text"
+  
+              {/* Intenção de Compra */}
+              <label className="flex flex-col text-gray-700">
+                Intenção de Compra *
+                <select
                   name="intencao_compra"
-                  value={selectedUser.intencao_compra || ''}
+                  value={selectedUser.intencao_compra || ""}
                   onChange={handleEditChange}
-                />
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>Selecione a intenção</option>
+                  {intentions.map((intention) => (
+                    <option key={intention.id} value={intention.descricao}>
+                      {intention.descricao}
+                    </option>
+                  ))}
+                </select>
               </label>
-
-              <label>
-                Vendedor:
-                <input
-                  type="text"
+  
+              {/* Vendedor */}
+              <label className="flex flex-col text-gray-700">
+                Vendedor *
+                <select
                   name="vendedor"
-                  value={selectedUser.vendedor || ''}
+                  value={selectedUser.vendedor || ""}
                   onChange={handleEditChange}
-                />
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>Selecione um vendedor</option>
+                  {vendedores.map((vendedor) => (
+                    <option key={vendedor.id} value={vendedor.nome_vendedor}>
+                      {vendedor.nome_vendedor}
+                    </option>
+                  ))}
+                </select>
               </label>
-
-              <label>
-                Veículo de Interesse:
-                <input
-                  type="text"
-                  name="veiculo_interesse"
-                  value={selectedUser.veiculo_interesse || ''}
-                  onChange={handleEditChange}
-                />
-              </label>
-
-              <label>
-                Data:
-                <input
-                  type="date"
-                  name="data"
-                  value={selectedUser.data || ''}
-                  onChange={handleEditChange}
-                />
-              </label>
-
-              <div className="modal-buttons">
-                <button type="submit" className="save-button">
+                      {/* Veículo de Interesse */}
+        <label className="flex flex-col text-gray-700">
+          Veículo de Interesse *
+          <select
+            name="veiculo_interesse"
+            value={selectedUser.veiculo_interesse || ""}
+            onChange={handleEditChange}
+            required
+            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>Selecione o veículo</option>
+            {vehicles.map((vehicle) => (
+              <option key={vehicle.id} value={vehicle.descricao}>
+                {vehicle.descricao}
+              </option>
+            ))}
+          </select>
+          </label>
+  
+  
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
                   Salvar
-                </button>
-                <button type="button" className="cancel-button" onClick={closeEditModal}>
-                  Cancelar
                 </button>
               </div>
             </form>
@@ -464,6 +549,6 @@ function UserTable() {
       )}
     </div>
   );
-}
+}  
 
 export default UserTable;
