@@ -286,8 +286,8 @@ function UserTable() {
 
   const renderSpecificTable = () => (
     <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
-      <thead>
-        <tr className="bg-gray-200">
+      <thead className="bg-[#001e50] text-white">
+        <tr>
           <th className="p-3 text-left">Empresa</th>
           <th className="p-3 text-left">Usuário</th>
           <th className="p-3 text-left">Vendedor</th>
@@ -323,8 +323,8 @@ function UserTable() {
 
   const renderEntryTable = () => (
     <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
-      <thead>
-        <tr className="bg-gray-200">
+      <thead className="bg-[#001e50] text-white">
+        <tr>
           <th className="p-3 text-left">Empresa</th>
           <th className="p-3 text-left">Usuário</th>
           <th className="p-3 text-left">Vendedor</th>

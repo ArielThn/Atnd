@@ -26,12 +26,12 @@ function EntradaCarrosTabela() {
 
   useEffect(() => {
     if (entryData.length > 0) {
-      const uniqueUsuarios = [...new Set(entryData.map((item) => item.usuario))];
+      const uniqueUsuarios = [...new Set(entryData.map((item) => item.nome_vendedor))];
       const uniqueCarros = [...new Set(entryData.map((item) => item.carro))];
 
-      const matrix = uniqueUsuarios.map((usuario) =>
+      const matrix = uniqueUsuarios.map((nome_vendedor) =>
         uniqueCarros.map(
-          (carro) => entryData.filter((item) => item.usuario === usuario && item.carro === carro).length
+          (carro) => entryData.filter((item) => item.nome_vendedor === nome_vendedor && item.carro === carro).length
         )
       );
 
