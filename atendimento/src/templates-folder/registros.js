@@ -271,8 +271,6 @@ function UserTable() {
         ? specificData
         : entryData;
 
-    console.log(`Filtrando dados para a tabela ${activeTable}:`, data);
-
     if (!searchTerm) return data;
 
     return data.filter((item) =>
@@ -303,7 +301,7 @@ function UserTable() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/formularios/${selectedUser.id_saida}`, { // Usando id_saida
+      const response = await fetch(`http://localhost:5000/api/formularios/${selectedUser.id}`, { // Usando id_saida
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -386,7 +384,6 @@ function UserTable() {
 
   // Renderizar a Tabela Geral (mantida como estava)
   const renderGeneralTable = () => {
-    console.log('Renderizando Tabela Geral com dados:', generalData);
     return (
       <>
         <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -408,7 +405,7 @@ function UserTable() {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.id_empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
+                  <td className="p-3">{item.empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
                   <td className="p-3">{item.nome}</td>
                   <td className="p-3">{item.telefone}</td>
                   <td className="p-3">{item.cpf}</td>

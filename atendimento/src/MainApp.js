@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from './templates-folder/sidebar';
 import Grafico from './templates-folder/grafico';
-import Teste from './templates-folder/Teste'
 import Registros from './templates-folder/registros'; // Registros gerais
 import ClientForm from './templates-folder/FormsComponent';
 import SaidaForm from './templates-folder/saida-carros';
@@ -45,8 +44,6 @@ const MainApp = ({ onLogout, isAdmin }) => {
       <div className="content">
         {/* Gráficos */}
         {activeComponent === 'grafico' && <Grafico />}
-
-        {activeComponent === 'teste' && <Teste />}
 
         {/* Registros Gerais */}
         {activeComponent === 'registros' && (
