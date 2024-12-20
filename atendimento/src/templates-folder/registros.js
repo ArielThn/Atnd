@@ -388,7 +388,31 @@ function UserTable() {
           Tabela Entrada
         </button>
       </div>
-      
+      {/* Filtro de pesquisa */}
+      <div className="filter-container">
+        <input
+          type="text"
+          placeholder="Pesquisar..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+        <div className="search">
+          <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+            <option key={0} value={0}>Todos os Meses</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {new Date(0, i).toLocaleString('pt-BR', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+          <select value={company} onChange={(e) => setCompany(e.target.value)}>
+            <option value="all">Todas as Empresas</option>
+            <option value="2">Ariel</option>
+            <option value="1">Trescinco</option>
+          </select>
+        </div>
+      </div>
       {activeTable === "geral" && renderGeneralTable()}
       {activeTable === "saida" && renderSpecificTable()}
       {activeTable === "entrada" && renderEntryTable()}
@@ -515,25 +539,25 @@ function UserTable() {
                   ))}
                 </select>
               </label>
-                      {/* Veículo de Interesse */}
-        <label className="flex flex-col text-gray-700">
-          Veículo de Interesse *
-          <select
-            name="veiculo_interesse"
-            value={selectedUser.veiculo_interesse || ""}
-            onChange={handleEditChange}
-            required
-            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>Selecione o veículo</option>
-            {vehicles.map((vehicle) => (
-              <option key={vehicle.id} value={vehicle.descricao}>
-                {vehicle.descricao}
-              </option>
-            ))}
-          </select>
-          </label>
-  
+                  {/* Veículo de Interesse */}
+              <label className="flex flex-col text-gray-700">
+                Veículo de Interesse *
+                <select
+                  name="veiculo_interesse"
+                  value={selectedUser.veiculo_interesse || ""}
+                  onChange={handleEditChange}
+                  required
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled>Selecione o veículo</option>
+                  {vehicles.map((vehicle) => (
+                    <option key={vehicle.id} value={vehicle.descricao}>
+                      {vehicle.descricao}
+                    </option>
+                  ))}
+                </select>
+                </label>
+
   
               <div className="mt-4 flex justify-end">
                 <button

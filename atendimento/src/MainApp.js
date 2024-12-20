@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './templates-folder/sidebar';
 import Grafico from './templates-folder/grafico';
+import Teste from './templates-folder/Teste'
 import Registros from './templates-folder/registros'; // Registros gerais
 import ClientForm from './templates-folder/FormsComponent';
 import SaidaForm from './templates-folder/saida-carros';
@@ -11,7 +12,7 @@ import RegistrosEntrada from './templates-folder/registros-entrada'; // Importa 
 import './css-folder/MainApp.css';
 
 const MainApp = ({ onLogout, isAdmin }) => {
-  const [activeComponent, setActiveComponent] = useState('grafico'); // Componente ativo
+  const [activeComponent, setActiveComponent] = useState('grafico');
   const [registros, setRegistros] = useState([]); // Lista de registros de saída
   const [selectedRegistro, setSelectedRegistro] = useState(null); // Registro selecionado para confirmação
 
@@ -44,6 +45,8 @@ const MainApp = ({ onLogout, isAdmin }) => {
       <div className="content">
         {/* Gráficos */}
         {activeComponent === 'grafico' && <Grafico />}
+
+        {activeComponent === 'teste' && <Teste />}
 
         {/* Registros Gerais */}
         {activeComponent === 'registros' && (

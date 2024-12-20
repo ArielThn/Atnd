@@ -53,7 +53,6 @@ function Dashboard() {
 // Carregar dados dos carros
 const fetchCarrosData = async () => {
   try {
-    console.log("Mês selecionado:", mesSelecionado); // Verifique se o mês está correto
 
     const response = await fetch(
       `http://localhost:5000/api/graficos/carros/${mesSelecionado}`, // Usar mês selecionado
@@ -66,18 +65,13 @@ const fetchCarrosData = async () => {
     }
 
     const data = await response.json();
-    console.log("Dados retornados:", data); // Verifique os dados recebidos da API
 
     let carroLabels = [];
     let carroQuantidades = [];
 
     // Verifique se as duas empresas foram retornadas
     if (data.empresa1 && data.empresa2) {
-      console.log("Dados da Empresa 1:", data.empresa1); // Dados da Empresa 1
-      console.log("Dados da Empresa 2:", data.empresa2); // Dados da Empresa 2
-
       const combinedData = [...data.empresa1, ...data.empresa2]; // Combinando dados das duas empresas
-      console.log("Dados combinados:", combinedData); // Confira como ficou a combinação
 
       // Agregar os dados combinados, somando as quantidades pelo carro
       const aggregatedData = combinedData.reduce((acc, item) => {
@@ -95,7 +89,6 @@ const fetchCarrosData = async () => {
         return acc;
       }, []);
       
-      console.log("Dados agregados:", aggregatedData); // Verifique se os dados estão sendo agregados corretamente
 
       carroLabels = aggregatedData.map((item) => item.nome_carro);
       carroQuantidades = aggregatedData.map((item) => item.quantidade);

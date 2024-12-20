@@ -217,77 +217,74 @@ router.get('/graficos/empresa-diario/:mes', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar dados da empresa-diario' });
   }
 });
-
 router.get('/graficos/contagens/:mes', async (req, res) => {
   try {
-    // Decodificar o token do cookie para obter as informações do usuário
+    // Extrair o mês diretamente dos parâmetros da URL
+    const { mes } = req.params;  // Obtém o mês passado como parâmetro
     const token = req.cookies.token;
     const decoded = jwt.verify(token, secretKey);
     const empresa = decoded.empresa;
     const isAdmin = decoded.isAdmin;
-    const { mes } = req.params;
 
-    // Validação do mês
-    if (!mes || mes < 1 || mes > 12) {
-      return res.status(400).json({ error: 'Mês inválido.' });
+    // Validação do parâmetro mes
+    if (!mes || mes.length !== 2 || isNaN(mes) || mes < 1 || mes > 12) {
+      return res.status(400).json({ error: 'Mês inválido. Deve ser um número entre 01 e 12.' });
     }
 
-    // Criar a data de início e fim do mês baseado no parâmetro fornecido
-    const startOfMonth = new Date(new Date().getFullYear(), mes - 1, 1);  // Ano atual
-    const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
-    const endOfMonth = new Date(new Date().getFullYear(), mes, 0);  // O último dia do mês
-    const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
+    // Criar as datas de início e fim para o mês com base no mês fornecido e no ano atual
+    const anoAtual = new Date().getFullYear(); // Ano atual
+    const startOfMonth = new Date(anoAtual, mes - 1, 1); // Início do mês
+    const endOfMonth = new Date(anoAtual, mes, 0); // Último dia do mês
+    const formattedStartOfMonth = startOfMonth.toISOString(); // Formatar para ISO
+    const formattedEndOfMonth = endOfMonth.toISOString(); // Formatar para ISO
 
-    // Consulta base, sem filtro de empresa
-    const queryBase = `
-      SELECT 
-        DATE_TRUNC('day', data_cadastro) AS dia,
-        COUNT(*) AS quantidade
-      FROM formulario
-      WHERE data_cadastro >= $1
-        AND data_cadastro <= $2
+    // Definir o filtro de empresa ou visualizar todas se for admin
+    const empresaFilter = isAdmin ? '' : `f.empresa = ${empresa}`;
+
+    // Ajustar a consulta SQL para contar os registros diários, semanais e mensais com base nas datas
+      const dailyCountQuery = `
+      SELECT COUNT(*) AS daily_count
+      FROM formulario f
+      WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''}
+      f.data_cadastro::DATE = CURRENT_DATE  -- Filtra apenas o dia de hoje
+    `;
+  
+
+    const weeklyCountQuery = `
+      SELECT COUNT(*) AS weekly_count
+      FROM formulario f
+      WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''}
+      f.data_cadastro >= CURRENT_DATE - INTERVAL '7 days'
+      AND f.data_cadastro < CURRENT_DATE -- Filtrando para a semana passada
+      AND EXTRACT(MONTH FROM f.data_cadastro) = $1
+      AND EXTRACT(YEAR FROM f.data_cadastro) = EXTRACT(YEAR FROM CURRENT_DATE)
     `;
 
-    // Se o usuário não for admin, deve aplicar o filtro de empresa
-    const queryWithEmpresa = queryBase + ` AND empresa = $3 GROUP BY DATE_TRUNC('day', data_cadastro) ORDER BY dia;`;
-    const queryWithoutEmpresa = queryBase + ` GROUP BY DATE_TRUNC('day', data_cadastro) ORDER BY dia;`;
+    const monthlyCountQuery = `
+      SELECT COUNT(*) AS monthly_count
+      FROM formulario f
+      WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''}
+      f.data_cadastro >= $1 
+      AND f.data_cadastro <= $2 -- Usa início e fim do mês
+    `;
 
-    // Definir as consultas e os parâmetros com base na autenticação
-    let dailyCountQuery = queryWithoutEmpresa;
-    let weeklyCountQuery = queryWithoutEmpresa;
-    let monthlyCountQuery = queryWithoutEmpresa;
-    
-    let dailyCountParams = [formattedStartOfMonth, formattedEndOfMonth];
-    let weeklyCountParams = [formattedStartOfMonth, formattedEndOfMonth];
-    let monthlyCountParams = [formattedStartOfMonth, formattedEndOfMonth];
+    // Passando apenas um parâmetro de data, ou mes (para contagens mensais e diárias)
+    const dailyCount = await pool.query(dailyCountQuery);
+    const weeklyCount = await pool.query(weeklyCountQuery, [mes]);
+    const monthlyCount = await pool.query(monthlyCountQuery, [formattedStartOfMonth, formattedEndOfMonth]);
 
-    // Se for admin, faremos as consultas para todas as empresas
-    if (!isAdmin) {
-      // Se não for admin, adicionamos o filtro para a empresa
-      dailyCountQuery = queryWithEmpresa;
-      weeklyCountQuery = queryWithEmpresa;
-      monthlyCountQuery = queryWithEmpresa;
-
-      dailyCountParams.push(empresa);  // Adiciona o parâmetro empresa
-      weeklyCountParams.push(empresa);  // Adiciona o parâmetro empresa
-      monthlyCountParams.push(empresa);  // Adiciona o parâmetro empresa
-    }
-
-    // Executando as consultas com os parâmetros ajustados
-    const dailyCount = await pool.query(dailyCountQuery, dailyCountParams);
-    const weeklyCount = await pool.query(weeklyCountQuery, weeklyCountParams);
-    const monthlyCount = await pool.query(monthlyCountQuery, monthlyCountParams);
-
-    // Preparar a resposta com as contagens
+    // Retornando a resposta com as contagens
     res.status(200).json({
-      dailyCount: dailyCount.rows.length > 0 ? parseInt(dailyCount.rows[0].quantidade, 10) : 0,
-      weeklyCount: weeklyCount.rows.length > 0 ? parseInt(weeklyCount.rows[0].quantidade, 10) : 0,
-      monthlyCount: monthlyCount.rows.length > 0 ? parseInt(monthlyCount.rows[0].quantidade, 10) : 0,
+      dailyCount: parseInt(dailyCount.rows[0].daily_count, 10),
+      weeklyCount: parseInt(weeklyCount.rows[0].weekly_count, 10),
+      monthlyCount: parseInt(monthlyCount.rows[0].monthly_count, 10),
     });
   } catch (error) {
     console.error('Erro ao buscar contagens:', error);
     res.status(500).json({ error: 'Erro ao buscar contagens' });
   }
 });
-  
+
+
+
 module.exports = router;

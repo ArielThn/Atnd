@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Login from '../src/login/Login';
 import ProtectedRoute from '../src/ProtectedRoute';
 import MainApp from '../src/MainApp';
-import RegistrosEntrada from './templates-folder/registros-entrada'; // Importa o componente
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -79,15 +78,6 @@ function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <MainApp onLogout={handleLogout} isAdmin={isAdmin} />
-            </ProtectedRoute>
-          }
-        />
-        {/* Rota para registros de entrada */}
-        <Route
-          path="/registros-entrada"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <RegistrosEntrada />
             </ProtectedRoute>
           }
         />

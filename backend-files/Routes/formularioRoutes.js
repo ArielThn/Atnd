@@ -10,20 +10,31 @@ router.get('/formularios', authenticate, async (req, res) => {
   const userEmpresa = req.user.empresa; // Pega a empresa do usuário do token
   const isAdmin = req.user.isAdmin; // Assume que o token contém a informação de permissão
 
+  // Validação de 'month' para garantir que é um valor numérico válido
+  if (month && (isNaN(month) || month < 0 || month > 12)) {
+    return res.status(400).json({ error: 'Mês inválido. O valor deve ser entre 0 e 12.' });
+  }
+
   try {
+    // Caso o mês seja 0, retorna todos os registros sem filtro de mês
     let query = `
-      SELECT * FROM formulario 
-      WHERE EXTRACT(MONTH FROM data_cadastro) = $1
+      SELECT * FROM formulario
     `;
-    let values = [month];
+    let values = [];
+
+    // Se o mês não for 0, adicionar o filtro do mês à consulta
+    if (month && month !== '0') {
+      query += ` WHERE EXTRACT(MONTH FROM data_cadastro) = $1`;
+      values.push(month);
+    }
 
     // Se o usuário não for administrador, limita a busca pela empresa do token
     if (!isAdmin) {
-      query += ' AND empresa = $2';
+      query += (values.length ? ' AND' : ' WHERE') + ' empresa = $' + (values.length + 1);
       values.push(userEmpresa);
     } else if (company && company !== 'all') {
       // Se for administrador e filtrou por empresa
-      query += ' AND empresa = $2';
+      query += (values.length ? ' AND' : ' WHERE') + ' empresa = $' + (values.length + 1);
       values.push(company);
     }
 
@@ -34,6 +45,7 @@ router.get('/formularios', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar registros' });
   }
 });
+
 
 router.put('/formularios/:id', async (req, res) => {
     const { id } = req.params;
