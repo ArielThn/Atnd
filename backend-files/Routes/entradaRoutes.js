@@ -20,7 +20,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // Endpoint para registrar entrada
-router.post('/registrar-entrada', async (req, res) => {
+router.post('/registrar-entrada', verifyToken, async (req, res) => {
   const {
     id_saida,
     usuario,
@@ -65,15 +65,22 @@ router.post('/registrar-entrada', async (req, res) => {
   }
 });
 
-
-// Rota para listar registros da tabela `registrar_entrada`
+// Rota para listar registros da tabela `registrar_saida` pendentes (sem data_retorno)
 router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
   try {
     const { empresa } = req.user; // Obtém o id_empresa do token
 
     // Consulta para buscar registros de saída pendentes (sem data_retorno)
     const query = `
-      SELECT * 
+      SELECT 
+        id_empresa,
+        id_saida,
+        usuario,
+        nome_vendedor,
+        data_horario,
+        carro,
+        placa,
+        observacao
       FROM registrar_saida
       WHERE id_empresa = $1
         AND data_retorno IS NULL;
@@ -98,10 +105,19 @@ router.get('/historico-saida', verifyToken, async (req, res) => {
     const { empresa } = req.user; // Obtém o id_empresa do token
 
     const query = `
-      SELECT * 
+      SELECT 
+        id_empresa,
+        id_saida,
+        usuario,
+        nome_vendedor,
+        data_horario,
+        carro,
+        placa,
+        observacao,
+        data_retorno
       FROM registrar_saida
       WHERE id_empresa = $1
-        AND data_retorno IS NOT NULL; -- Somente registros com data_retorno preenchida
+        AND data_retorno IS NOT NULL;
     `;
 
     const result = await pool.query(query, [empresa]);
@@ -116,12 +132,16 @@ router.get('/historico-saida', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar registros.' });
   }
 });
+
+// Rota para listar registros de entrada (historico-entrada)
 router.get('/historico-entrada', verifyToken, async (req, res) => {
   try {
     const { empresa } = req.user; // Obtém o ID da empresa a partir do token
 
     const query = `
       SELECT 
+        rs.id_empresa,
+        rs.id_saida,
         rs.usuario,
         rs.nome_vendedor,
         rs.carro,
@@ -148,5 +168,4 @@ router.get('/historico-entrada', verifyToken, async (req, res) => {
   }
 });
 
-module.exports = router;
 module.exports = router;
