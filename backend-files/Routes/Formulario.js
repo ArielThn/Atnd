@@ -35,54 +35,6 @@ router.post('/veiculos', async (req, res) => {
   }
 });
 
-
-
-
-router.post('/clientes', authenticate, async (req, res) => {
-  const {
-    acompanhantes,
-    cpf,
-    intencaoCompra,
-    nome,
-    origem,
-    telefone,
-    veiculoInteresse,
-    vendedor 
-  } = req.body;
-
-  const empresa = req.user.empresa;
-
-  try {
-    // Busca o código do vendedor com base no nome fornecido
-    const vendedorQuery = await pool.query(
-      `SELECT vendedor AS vendedor_codigo
-       FROM vendedor 
-       WHERE nome_vendedor = $1`,
-      [vendedor]
-    );
-
-    // Verifica se o vendedor foi encontrado
-    if (vendedorQuery.rows.length === 0) {
-      return res.status(400).json({ error: 'Vendedor não encontrado' });
-    }
-
-    const vendedorCodigo = vendedorQuery.rows[0].vendedor_codigo;
-
-    const result = await pool.query(
-      `INSERT INTO formulario 
-        (nome, telefone, cpf, origem, intencao_compra, quantidade_acompanhantes, veiculo_interesse, empresa, vendedor, vendedor_codigo, data_cadastro)
-      VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-      RETURNING *`,
-      [nome, telefone, cpf, origem, intencaoCompra, acompanhantes, veiculoInteresse, empresa, vendedor, vendedorCodigo]
-    );
-
-    res.status(201).json({ message: 'Dados cadastrados com sucesso!', cliente: result.rows[0] });
-  } catch (error) {
-    console.error('Erro ao cadastrar cliente:', error);
-    res.status(500).json({ error: 'Erro ao cadastrar cliente' });
-  }
-});
 router.post('/origem', authenticate, async (req, res) => {
   const { descricao } = req.body;
 
@@ -97,5 +49,53 @@ router.post('/origem', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Erro ao adicionar origem' });
   }
 });
+
+router.post('/clientes', authenticate, async (req, res) => {
+  const {
+    acompanhantes = null,
+    cpf = null,
+    intencaoCompra = "",
+    nome = null,
+    origem = null,
+    telefone = null,
+    veiculoInteresse = null,
+    vendedor = null
+  } = req.body;
+
+  const empresa = req.user.empresa;
+  let vendedorCodigo = null;  // Declarando com let para possibilidade de reatribuição
+
+
+  try {
+    // Buscar código do vendedor com base no nome fornecido
+    if (vendedor) {
+      const vendedorQuery = await pool.query(
+        `SELECT vendedor AS vendedor_codigo
+         FROM vendedor 
+         WHERE nome_vendedor = $1`,
+        [vendedor]
+      );
+      vendedorCodigo = vendedorQuery.rows[0]?.vendedor_codigo || null;
+    }
+
+    // Validação de acompanhantes
+    const acompanhantesValue = (acompanhantes && !isNaN(acompanhantes)) ? parseInt(acompanhantes, 10) : null;
+
+    const result = await pool.query(
+      `INSERT INTO formulario 
+        (nome, telefone, cpf, origem, intencao_compra, quantidade_acompanhantes, veiculo_interesse, empresa, vendedor, vendedor_codigo, data_cadastro)
+      VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+      RETURNING *`,
+      [nome, telefone, cpf, origem, intencaoCompra, acompanhantesValue, veiculoInteresse, empresa, vendedor, vendedorCodigo]
+    );
+
+    res.status(201).json({ message: 'Dados cadastrados com sucesso!', cliente: result.rows[0] });
+  } catch (error) {
+    console.error('Erro ao cadastrar cliente:', error);
+    res.status(500).json({ error: 'Erro ao cadastrar cliente' });
+  }
+});
+
 
 module.exports = router;

@@ -67,7 +67,6 @@ function UserTable() {
         })}`;
   };
   
-
   // Função para deletar um cliente
   const deleteCliente = async (id) => {
     try {
@@ -94,14 +93,13 @@ function UserTable() {
     }
   };
 
-  // Fetch de dados auxiliares
+  // Fetch de dados para alterar
   useEffect(() => {
     async function fetchOrigins() {
       try {
         const response = await fetch('http://localhost:5000/api/origem');
         const data = await response.json();
         setOrigins(data);
-        console.log('Origens recebidas:', data);
       } catch (error) {
         console.error('Erro ao buscar origens:', error);
       }
@@ -115,7 +113,6 @@ function UserTable() {
         const response = await fetch('http://localhost:5000/api/intencao-compra');
         const data = await response.json();
         setIntentions(data);
-        console.log('Intenções de compra recebidas:', data);
       } catch (error) {
         console.error('Erro ao buscar intenções de compra:', error);
       }
@@ -129,7 +126,6 @@ function UserTable() {
         const response = await fetch('http://localhost:5000/api/veiculos');
         const data = await response.json();
         setVehicles(data);
-        console.log('Veículos de interesse recebidos:', data);
       } catch (error) {
         console.error('Erro ao buscar veículos de interesse:', error);
       }
@@ -144,7 +140,6 @@ function UserTable() {
         const data = await response.json();
         if (Array.isArray(data)) {
           setVendedores(data);
-          console.log('Vendedores recebidos:', data);
         } else {
           console.error('A resposta dos vendedores não é uma lista:', data);
         }
@@ -155,7 +150,7 @@ function UserTable() {
     fetchVendedores();
   }, []);
 
-  // Função de busca para a Tabela Geral (mantida como estava)
+  // Função de busca para a Tabela Geral
   const fetchGeneralData = async (page = 1) => {
     try {
       const response = await fetch(
@@ -165,7 +160,6 @@ function UserTable() {
       if (!response.ok) throw new Error('Erro ao buscar dados.');
 
       const data = await response.json();
-      console.log(`Dados recebidos de formularios (Página ${page}):`, data);
 
       // Verifique se a resposta possui os campos esperados
       if (data.records && typeof data.currentPage === 'number') {
@@ -188,47 +182,23 @@ function UserTable() {
   const fetchSpecificData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/historico-saida-pendentes?month=${month}&company=${company}&page=${page}`,
+        `http://localhost:5000/api/historico-saida-pendentes?mes=${month}&company=${company}&page=${page}`,
         { credentials: 'include' }
       );
       if (!response.ok) throw new Error('Erro ao buscar dados.');
-
+  
       const data = await response.json();
-      console.log(`Dados recebidos de historico-saida-pendentes (Página ${page}):`, data);
-
-      if (Array.isArray(data)) {
-        setSpecificData(data);
+  
+      // Verificando se a resposta contém o formato correto
+      console.log("Resposta da API:", data);
+  
+      // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
+      if (data.records && typeof data.currentPage === 'number') {
+        setSpecificData(data.records);  // Aqui é onde você seta os dados
         setSpecificPagination({
-          currentPage: page,
-          totalPages: Math.ceil(data.length / 10), // Supondo 10 registros por página
-          totalRecords: data.length,
-        });
-      } else {
-        throw new Error('Resposta da API em formato inesperado.');
-      }
-    } catch (error) {
-      console.error(`Erro ao buscar dados de historico-saida-pendentes:`, error);
-      toast.error('Erro ao buscar dados de Saída.');
-    }
-  };
-
-  const fetchEntryData = async (page = 1) => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/historico-entrada?month=${month}&company=${company}&page=${page}`,
-        { credentials: 'include' }
-      );
-      if (!response.ok) throw new Error('Erro ao buscar dados.');
-
-      const data = await response.json();
-      console.log(`Dados recebidos de historico-entrada (Página ${page}):`, data);
-
-      if (Array.isArray(data)) {
-        setEntryData(data);
-        setEntryPagination({
-          currentPage: page,
-          totalPages: Math.ceil(data.length / 10), // Supondo 10 registros por página
-          totalRecords: data.length,
+          currentPage: data.currentPage,
+          totalPages: data.totalPages,
+          totalRecords: data.totalRecords,
         });
       } else {
         throw new Error('Resposta da API em formato inesperado.');
@@ -238,6 +208,38 @@ function UserTable() {
       toast.error('Erro ao buscar dados de Entrada.');
     }
   };
+  
+
+const fetchEntryData = async (page = 1) => {
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/historico-entrada?mes=${month}&empresa=${company}&page=${page}`,
+      { credentials: 'include' }
+    );
+    if (!response.ok) throw new Error('Erro ao buscar dados.');
+
+    const data = await response.json();
+
+    // Verificando se a resposta contém o formato correto
+    console.log("Resposta da API:", data);
+
+    // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
+    if (data.records && typeof data.currentPage === 'number') {
+      setEntryData(data.records);  // Aqui é onde você seta os dados
+      setEntryPagination({
+        currentPage: data.currentPage,
+        totalPages: data.totalPages,
+        totalRecords: data.totalRecords,
+      });
+    } else {
+      throw new Error('Resposta da API em formato inesperado.');
+    }
+  } catch (error) {
+    console.error(`Erro ao buscar dados de historico-entrada:`, error);
+    toast.error('Erro ao buscar dados de Entrada.');
+  }
+};
+
 
   // Buscar dados quando a tabela ativa, filtros ou página mudam
   useEffect(() => {
@@ -252,12 +254,16 @@ function UserTable() {
     if (activeTable === 'geral') {
       setGeneralPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchGeneralData(1);
+      console.log("Dados gerais carregados:", generalData);
     } else if (activeTable === 'saida') {
       setSpecificPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchSpecificData(1);
+      console.log("Dados de saída carregados:", specificData);
     } else if (activeTable === 'entrada') {
       setEntryPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchEntryData(1);
+      console.log("Dados de entrada carregados:", entryData);
+
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, company]);
@@ -423,7 +429,7 @@ function UserTable() {
                     </button>
                     {decoded && decoded.isAdmin && (
                       <button
-                        onClick={() => deleteCliente(item.id_saida)}
+                        onClick={() => deleteCliente(item.id)}
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                       >
                         Deletar
@@ -448,13 +454,11 @@ function UserTable() {
 
   // Renderizar a Tabela Saída (atualizada)
   const renderSpecificTable = () => {
-    console.log('Renderizando Tabela Saída com dados:', specificData);
     return (
       <>
         <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-[#001e50] text-white">
             <tr>
-              <th className="p-3 text-left">ID Saída</th>
               <th className="p-3 text-left">Usuário</th>
               <th className="p-3 text-left">Vendedor</th>
               <th className="p-3 text-left">Data e Horário</th>
@@ -467,7 +471,6 @@ function UserTable() {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.id_saida}</td>
                   <td className="p-3">{item.usuario}</td>
                   <td className="p-3">{item.nome_vendedor}</td>
                   <td className="p-3">{formatDate(item.data_horario)}</td>
@@ -492,7 +495,6 @@ function UserTable() {
 
   // Renderizar a Tabela Entrada (atualizada)
   const renderEntryTable = () => {
-    console.log('Renderizando Tabela Entrada com dados:', entryData);
     return (
       <>
         <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -512,10 +514,10 @@ function UserTable() {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.id_empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
+                  <td className="p-3">{item.empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
                   <td className="p-3">{item.usuario}</td>
                   <td className="p-3">{item.nome_vendedor}</td>
-                  <td className="p-3">{formatDate(item.data_saida)}</td>
+                  <td className="p-3">{formatDate(item.data_horario)}</td>
                   <td className="p-3">{formatDate(item.data_retorno)}</td>
                   <td className="p-3">{item.carro}</td>
                   <td className="p-3">{item.placa}</td>
@@ -571,33 +573,37 @@ function UserTable() {
           type="text"
           placeholder="Pesquisar..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}  // Atualiza o termo de pesquisa
           className="search-input mb-2 md:mb-0 p-2 border border-gray-300 rounded-md"
         />
+        
         <div className="search flex space-x-2">
+          {/* Seletor de Mês */}
           <select
             value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
+            onChange={(e) => setMonth(Number(e.target.value))}  // Atualiza o valor do mês
             className="p-2 border border-gray-300 rounded-md"
           >
-            <option key={0} value={0}>
-              Todos os Meses
-            </option>
+            <option key={0} value={0}>Todos os Meses</option>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
                 {new Date(0, i).toLocaleString('pt-BR', { month: 'long' })}
               </option>
             ))}
           </select>
-          <select
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            className="p-2 border border-gray-300 rounded-md"
-          >
-            <option value="all">Todas as Empresas</option>
-            <option value="2">Ariel</option>
-            <option value="1">Trescinco</option>
-          </select>
+
+          {/* Seletor de Empresa, visível para administradores */}
+          {decoded?.isAdmin && (
+            <select
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}  // Atualiza a empresa selecionada
+              className="p-2 border border-gray-300 rounded-md"
+            >
+              <option value="all">Todas as Empresas</option>
+              <option value="2">Ariel</option>
+              <option value="1">Trescinco</option>
+            </select>
+          )}
         </div>
       </div>
       {/* Renderizar a tabela ativa */}

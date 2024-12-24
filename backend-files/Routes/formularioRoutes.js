@@ -14,7 +14,7 @@ router.get('/formularios', authenticate, async (req, res) => {
     page = 1; // Valor padrão se 'page' não for válido
   }
 
-  const userEmpresa = req.user.empresa; // Pega a empresa do usuário do token
+  const userEmpresa = req.user.empresa; // Pega a empresa do usuário do tokensearc
   const isAdmin = req.user.isAdmin; // Assume que o token contém a informação de permissão
   const limit = 15; // Limite de registros por página
   const offset = (page - 1) * limit; // Calcula o deslocamento baseado na página atual

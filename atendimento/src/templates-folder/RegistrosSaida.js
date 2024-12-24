@@ -30,7 +30,7 @@ const RegistrosSaida = () => {
   const fetchRegistros = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/historico-saida-pendentes', {
+      const response = await fetch('http://localhost:5000/api/registros-saida', {
         credentials: 'include', // Garante envio de cookies
       });
       if (!response.ok) {

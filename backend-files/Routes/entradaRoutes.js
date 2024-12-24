@@ -57,7 +57,6 @@ router.post('/registrar-entrada', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Registro de saída não encontrado para atualização.' });
     }
 
-    console.log('Data de retorno registrada com sucesso:', updateResult.rows[0]);
     res.status(200).json(updateResult.rows[0]);
   } catch (error) {
     console.error('Erro ao registrar data de retorno:', error);
@@ -65,8 +64,173 @@ router.post('/registrar-entrada', verifyToken, async (req, res) => {
   }
 });
 
-// Rota para listar registros da tabela `registrar_saida` pendentes (sem data_retorno)
+// Rota para buscar registros de saída pendentes com filtros por mês e empresa com paginação
 router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
+  let { mes, empresa, page } = req.query;
+
+  // Parsing e validação do parâmetro 'page'
+  page = parseInt(page, 10);
+  if (isNaN(page) || page < 1) {
+    page = 1; // Valor padrão se 'page' não for válido
+  }
+
+  const userEmpresa = req.user.empresa; // Pega a empresa do usuário do token
+  const isAdmin = req.user.isAdmin; // Assume que o token contém a informação de permissão
+  const limit = 15; // Limite de registros por página
+  const offset = (page - 1) * limit; // Calcula o deslocamento baseado na página atual
+
+  // Validação de 'mes' para garantir que é um valor numérico válido
+  if (mes !== undefined) {
+    mes = parseInt(mes, 10);
+    if (isNaN(mes) || mes < 0 || mes > 12) {
+      return res.status(400).json({ error: 'Mês inválido. O valor deve ser entre 0 e 12.' });
+    }
+  }
+
+  try {
+    // Construção da consulta principal com filtros
+    let query = `SELECT * FROM registrar_saida`;
+    let countQuery = `SELECT COUNT(*) FROM registrar_saida`;
+    let conditions = [];
+    let values = [];
+    let countValues = [];
+
+    // Filtro por mês (se mes for 0, significa buscar todos os meses)
+    if (mes !== undefined && mes !== 0) {
+      conditions.push(`EXTRACT(MONTH FROM data_horario) = $${values.length + 1}`);
+      values.push(mes);
+      countValues.push(mes);
+    }
+
+    // Filtro por empresa
+    if (!isAdmin) {
+      conditions.push(`id_empresa = $${values.length + 1}`);
+      values.push(userEmpresa);
+      countValues.push(userEmpresa);
+    } else if (empresa && empresa !== 'all') {
+      conditions.push(`id_empresa = $${values.length + 1}`);
+      values.push(empresa);
+      countValues.push(empresa);
+    }
+
+    // Filtro para garantir que o retorno é NULL (pendente)
+    conditions.push(`data_retorno IS NULL`);
+
+    // Adiciona as condições às consultas
+    if (conditions.length > 0) {
+      const whereClause = ' WHERE ' + conditions.join(' AND ');
+      query += whereClause;
+      countQuery += whereClause;
+    }
+
+    // Adiciona ordenação, limite e offset
+    query += ` ORDER BY data_retorno DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+    values.push(limit, offset);
+
+    // Executa ambas as consultas em paralelo
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(query, values),
+      pool.query(countQuery, countValues),
+    ]);
+
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      currentPage: page,
+      totalPages,
+      totalRecords,
+      records: dataResult.rows,
+    });
+  } catch (error) {
+    console.error('Erro ao buscar registros de entrada:', error);
+    res.status(500).json({ error: 'Erro ao buscar registros de entrada.' });
+  }
+});
+
+// Rota para buscar registros de entrada com filtros por mês e empresa com paginação
+router.get('/historico-entrada', verifyToken, async (req, res) => {
+  let { mes, empresa, page } = req.query;
+
+  // Parsing e validação do parâmetro 'page'
+  page = parseInt(page, 10);
+  if (isNaN(page) || page < 1) {
+    page = 1; // Valor padrão se 'page' não for válido
+  }
+
+  const userEmpresa = req.user.empresa; // Pega a empresa do usuário do token
+  const isAdmin = req.user.isAdmin; // Assuma que o token contém a informação de permissão
+  const limit = 15; // Limite de registros por página
+  const offset = (page - 1) * limit; // Calcula o deslocamento baseado na página atual
+
+  // Validação de 'mes' para garantir que é um valor numérico válido
+  if (mes !== undefined) {
+    mes = parseInt(mes, 10);
+    if (isNaN(mes) || mes < 0 || mes > 12) {
+      return res.status(400).json({ error: 'Mês inválido. O valor deve ser entre 0 e 12.' });
+    }
+  }
+
+  try {
+    // Construção da consulta principal com filtros
+    let query = `SELECT * FROM registrar_saida`;
+    let countQuery = `SELECT COUNT(*) FROM registrar_saida`;
+    let conditions = [];
+    let values = [];
+    let countValues = [];
+
+    // Filtro por mês (se mes for 0, significa buscar todos os meses)
+    if (mes !== undefined && mes !== 0) {
+      conditions.push(`EXTRACT(MONTH FROM data_retorno) = $${values.length + 1}`);
+      values.push(mes);
+      countValues.push(mes);
+    }
+    conditions.push(`data_retorno IS NOT NULL`);
+
+    // Filtro por empresa
+    if (!isAdmin) {
+      conditions.push(`id_empresa = $${values.length + 1}`);
+      values.push(userEmpresa);
+      countValues.push(userEmpresa);
+    } else if (empresa && empresa !== 'all') {
+      conditions.push(`id_empresa = $${values.length + 1}`);
+      values.push(empresa);
+      countValues.push(empresa);
+    }
+
+    // Adiciona as condições às consultas
+    if (conditions.length > 0) {
+      const whereClause = ' WHERE ' + conditions.join(' AND ');
+      query += whereClause;
+      countQuery += whereClause;
+    }
+
+    // Adiciona ordenação, limite e offset
+    query += ` ORDER BY data_retorno DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+    values.push(limit, offset);
+
+    // Executa ambas as consultas em paralelo
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(query, values),
+      pool.query(countQuery, countValues),
+    ]);
+
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      currentPage: page,
+      totalPages,
+      totalRecords,
+      records: dataResult.rows,
+    });
+  } catch (error) {
+    console.error('Erro ao buscar registros de entrada:', error);
+    res.status(500).json({ error: 'Erro ao buscar registros de entrada.' });
+  }
+});
+
+router.get('/registros-saida', verifyToken, async (req, res) => {
   try {
     const { empresa } = req.user; // Obtém o id_empresa do token
 
@@ -96,75 +260,6 @@ router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar registros pendentes:', error.message);
     res.status(500).json({ message: 'Erro ao buscar registros pendentes.' });
-  }
-});
-
-// Rota para listar registros com data_retorno preenchida
-router.get('/historico-saida', verifyToken, async (req, res) => {
-  try {
-    const { empresa } = req.user; // Obtém o id_empresa do token
-
-    const query = `
-      SELECT 
-        id_empresa,
-        id_saida,
-        usuario,
-        nome_vendedor,
-        data_horario,
-        carro,
-        placa,
-        observacao,
-        data_retorno
-      FROM registrar_saida
-      WHERE id_empresa = $1
-        AND data_retorno IS NOT NULL;
-    `;
-
-    const result = await pool.query(query, [empresa]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Nenhum registro com retorno encontrado.' });
-    }
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Erro ao buscar registros com retorno:', error.message);
-    res.status(500).json({ message: 'Erro ao buscar registros.' });
-  }
-});
-
-// Rota para listar registros de entrada (historico-entrada)
-router.get('/historico-entrada', verifyToken, async (req, res) => {
-  try {
-    const { empresa } = req.user; // Obtém o ID da empresa a partir do token
-
-    const query = `
-      SELECT 
-        rs.id_empresa,
-        rs.id_saida,
-        rs.usuario,
-        rs.nome_vendedor,
-        rs.carro,
-        rs.placa,
-        rs.data_horario AS data_saida,
-        rs.data_retorno,
-        rs.observacao
-      FROM registrar_saida rs
-      WHERE rs.id_empresa = $1
-        AND rs.data_retorno IS NOT NULL
-      ORDER BY rs.data_retorno DESC;
-    `;
-
-    const result = await pool.query(query, [empresa]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Nenhum registro de entrada encontrado.' });
-    }
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Erro ao buscar registros de entrada:', error.message);
-    res.status(500).json({ message: 'Erro ao buscar registros.' });
   }
 });
 

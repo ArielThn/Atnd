@@ -26,6 +26,7 @@ const usuariosRoutes = require('../backend-files/Routes/usuariosRoutes');
 const motivosSaidaRoutes = require('../backend-files/Routes/motivosSaidaRoutes');
 const carrosRoutesCadastrar = require('./Routes/carrosRoutesCadastrar');
 const deletarCliente = require('./Routes/deletarCliente');
+const deletarCamposForm = require('./Routes/deleteRoutes');
 const { startScheduler } = require('./sheduler');
 const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 
@@ -46,6 +47,7 @@ try {
   // Rotas
   app.use('/api', veiculosRoutes);
   app.use('/api', deletarCliente);
+  app.use('/api', deletarCamposForm);
   app.use('/api', intencaoCompraRoutes);
   app.use('/api', origemRoutes);
   app.use('/api', syncRoutes);

@@ -169,7 +169,7 @@ const SaidaForm = () => {
                 {Array.isArray(vendedores) &&
                   vendedores.map((vendedor) => (
                     <option key={vendedor.usuario} value={vendedor.nome}>
-                      {vendedor.nome} ({vendedor.usuario})
+                      {vendedor.nome}
                     </option>
                   ))}
               </datalist>

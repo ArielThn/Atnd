@@ -126,13 +126,7 @@ function Sidebar({ onLogout, onChangeComponent }) {
             <FaHistory className="mr-2 text-[28px]" />
             {showText && <span>Registros de Entrada</span>}
           </li>
-          <li
-            onClick={() => onChangeComponent('teste')}
-            className="flex items-center justify-center w-full py-3 cursor-pointer text-white text-base font-medium transition-colors duration-200 hover:bg-[#00509e] rounded-lg"
-          >
-            <FaHistory className="mr-2 text-[28px]" />
-            {showText && <span>Teste</span>}
-          </li>
+
         </ul>
       </nav>
       {/* Logout */}
