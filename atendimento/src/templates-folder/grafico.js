@@ -12,7 +12,6 @@ import {
 } from "chart.js";
 import "../css-folder/grafico.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import axios from "axios";
 
 ChartJS.register(
   CategoryScale,
@@ -40,22 +39,56 @@ function Dashboard() {
     return dataAtual.getMonth() + 1; // Ajusta de 0-11 para 1-12
   });
 
+  // Lista de meses
   const meses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
-  const handleChange = (e) => {
-    setMesSelecionado(e.target.value);
+  // Estado para armazenar anos e meses filtrados (opcionalmente, dados do backend)
+  const [anosMeses, setAnosMeses] = useState([]);
+  const [anoSelecionado, setAnoSelecionado] = useState(null);
+
+  // Função para buscar os dados de meses e anos
+  const fetchAnosMeses = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/meses", {
+        method: "GET",
+        credentials: "include", // Caso precise enviar cookies
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar os anos e meses");
+      }
+
+      const data = await response.json();
+      setAnosMeses(data); // Guarda anos e meses no estado
+    } catch (error) {
+      console.error("Erro ao buscar anos e meses:", error);
+    }
   };
 
-  
-// Carregar dados dos carros
+  // Lida com a mudança de seleção do ano
+  const handleAnoChange = (e) => {
+    const anoSelecionado = e.target.value;
+    setAnoSelecionado(anoSelecionado);
+    // Filtra os meses disponíveis para o ano selecionado
+    const mesesParaAnoSelecionado = anosMeses.filter(item => item.ano === parseInt(anoSelecionado, 10))
+                                              .map(item => item.mes);
+    setMesesDisponiveis(mesesParaAnoSelecionado); // Meses disponíveis com base no ano
+  };
+
+  const [mesesDisponiveis, setMesesDisponiveis] = useState([]);
+
+  const handleMesChange = (e) => {
+    setMesSelecionado(e.target.value); // Atualiza o mês
+  };
+
 const fetchCarrosData = async () => {
   try {
 
     const response = await fetch(
-      `http://localhost:5000/api/graficos/carros/${mesSelecionado}`, // Usar mês selecionado
+      `http://localhost:5000/api/graficos/carros/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
       { credentials: "include" }
     );
 
@@ -120,7 +153,7 @@ const fetchCarrosData = async () => {
 const fetchCounts = async () => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/graficos/contagens/${mesSelecionado}`, // Usar mês selecionado
+      `http://localhost:5000/api/graficos/contagens/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
       { credentials: "include" }
     );
 
@@ -158,7 +191,7 @@ const fetchCounts = async () => {
   const fetchDataOrigem = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/graficos/origens/${mesSelecionado}`, // Usar mês selecionado
+        `http://localhost:5000/api/graficos/origens/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
         { credentials: "include" }
       );
       const data = await response.json();
@@ -207,7 +240,7 @@ const fetchCounts = async () => {
   const fetchBarData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/graficos/empresa-diario/${mesSelecionado}`, // Usar mês selecionado na URL
+        `http://localhost:5000/api/graficos/empresa-diario/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado na URL
         { credentials: "include" }
       );
       const data = await response.json();
@@ -273,33 +306,55 @@ const fetchCounts = async () => {
     }
   };
   
+  useEffect(() => {
+    fetchAnosMeses();
+  }, []);
 
   // Recarregar os dados ao alterar o mês selecionado
   useEffect(() => {
-    if (mesSelecionado) {
+    if (anoSelecionado) {
       fetchBarData();
       fetchCarrosData();
       fetchDataOrigem();
       fetchCounts();
-
     }
-  }, [mesSelecionado]);
+  }, [anoSelecionado, mesSelecionado]);
 
   return (
-    <div className="w-full p-8">
-      <div className="pb-8">
-        <label htmlFor="mes" className="block text-gray-700">Selecione o Mês</label>
-        <select 
-          id="mes" 
-          name="mes" 
-          value={mesSelecionado} 
-          onChange={handleChange} 
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-        >
-          {meses.map((mes, index) => (
-            <option key={index} value={index + 1}>{mes}</option>
-          ))}
-        </select>
+    <div className="p-8 w-full">
+      {/* Select para o Ano */}
+      <div className="flex gap-8">
+        <div className="pb-8">
+          <select 
+            value={anoSelecionado} 
+            onChange={handleAnoChange} 
+            className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Selecione o Ano</option>
+            {[...new Set(anosMeses.map(item => item.ano))].map((ano) => (
+              <option key={ano} value={ano}>{ano}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Select para o Mês */}
+        {anoSelecionado && (
+          <div className="pb-8">
+            <select
+              id="mes"
+              name="mes"
+              value={mesSelecionado}
+              onChange={handleMesChange}
+              className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>Selecione o Mês</option>
+              {meses.filter((mes, index) => mesesDisponiveis.includes(index + 1))  // Filtra os meses disponíveis
+              .map((mes, index) => (
+                <option key={index} value={index + 1}>{mes}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="summary-cards relative -z-10">

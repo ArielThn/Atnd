@@ -147,11 +147,6 @@
     transition: background-color 0.3s ease;
   }
   
-  .motivos-table th {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-  }
   
   .motivos-table tr:nth-child(even) {
     background-color: #f8f9fa;

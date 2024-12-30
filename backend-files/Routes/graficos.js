@@ -4,8 +4,8 @@ const pool = require('../db');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config/config');
 
-router.get('/graficos/carros/:mes', async (req, res) => {
-try {
+router.get('/graficos/carros/:ano/:mes', async (req, res) => {
+  try {
     // Extrair o token dos cookies e verificar se ele está presente
     const token = req.cookies.token;
     if (!token) {
@@ -15,17 +15,23 @@ try {
     // Decodificar o token para obter `empresa` e `isAdmin`
     const decoded = jwt.verify(token, secretKey);
     const { empresa, isAdmin } = decoded;
-    const { mes } = req.params;
+    const { ano } = req.params; // Obter o ano da URL
+    const { mes } = req.params; // Obter o mês da URL
 
     // Validação do mês
     if (!mes || mes < 1 || mes > 12) {
       return res.status(400).json({ error: 'Mês inválido.' });
     }
 
-    // Criar a data de início e fim do mês baseado no parâmetro fornecido
-    const startOfMonth = new Date(new Date().getFullYear(), mes - 1, 1);  // Ano atual
+    // Validar o ano, caso seja um valor numérico válido
+    if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
+      return res.status(400).json({ error: 'Ano inválido.' });
+    }
+
+    // Criar a data de início e fim do mês baseado no ano e mês fornecido
+    const startOfMonth = new Date(ano, mes - 1, 1);  // O primeiro dia do mês
     const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
-    const endOfMonth = new Date(new Date().getFullYear(), mes, 0);  // O último dia do mês
+    const endOfMonth = new Date(ano, mes, 0);  // O último dia do mês
     const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
 
     // Definir a consulta SQL com filtro de data
@@ -69,10 +75,7 @@ try {
   }
 });
 
-
-
-
-router.get('/graficos/origens/:mes', async (req, res) => { 
+router.get('/graficos/origens/:ano/:mes', async (req, res) => { 
   try {
     // Extrair o token dos cookies e verificar se ele está presente
     const token = req.cookies.token;
@@ -83,17 +86,22 @@ router.get('/graficos/origens/:mes', async (req, res) => {
     // Decodificar o token para obter `empresa` e `isAdmin`
     const decoded = jwt.verify(token, secretKey);
     const { empresa, isAdmin } = decoded;
-    const { mes } = req.params;
+    const { ano, mes } = req.params;  // Obter o ano e o mês da URL
 
     // Validação do mês
     if (!mes || mes < 1 || mes > 12) {
       return res.status(400).json({ error: 'Mês inválido.' });
     }
 
-    // Criar a data de início e fim do mês baseado no parâmetro fornecido
-    const startOfMonth = new Date(new Date().getFullYear(), mes - 1, 1);  // Ano atual
+    // Validar o ano, caso seja um valor numérico válido
+    if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
+      return res.status(400).json({ error: 'Ano inválido.' });
+    }
+
+    // Criar a data de início e fim do mês baseado no ano e mês fornecido
+    const startOfMonth = new Date(ano, mes - 1, 1);  // O primeiro dia do mês
     const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
-    const endOfMonth = new Date(new Date().getFullYear(), mes, 0);  // O último dia do mês
+    const endOfMonth = new Date(ano, mes, 0);  // O último dia do mês
     const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
 
     // Definir a consulta SQL com filtro de data
@@ -137,9 +145,7 @@ router.get('/graficos/origens/:mes', async (req, res) => {
   }
 });
 
-
-
-router.get('/graficos/empresa-diario/:mes', async (req, res) => {
+router.get('/graficos/empresa-diario/:ano/:mes', async (req, res) => {
   try {
     // Extrair o token dos cookies e verificar se ele está presente
     const token = req.cookies.token;
@@ -147,24 +153,29 @@ router.get('/graficos/empresa-diario/:mes', async (req, res) => {
       return res.status(401).json({ error: 'Token não fornecido' });
     }
 
-    // Decodificar o token para obter `empresa` e `admin`
+    // Decodificar o token para obter `empresa` e `isAdmin`
     const decoded = jwt.verify(token, secretKey);
     const { empresa, isAdmin } = decoded;
 
-    // Receber o mês da URL
-    const { mes } = req.params;
+    // Receber o ano e o mês da URL
+    const { ano, mes } = req.params;
 
-    // Validação básica do parâmetro de mês
+    // Validação do mês
     if (!mes || mes < 1 || mes > 12) {
       return res.status(400).json({ error: 'Mês inválido.' });
     }
 
-    // Criar a data de início do mês a partir do parâmetro fornecido (sem o ano)
-    const startOfMonth = new Date(new Date().getFullYear(), mes - 1, 1);  // Ano atual
+    // Validar o ano
+    if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
+      return res.status(400).json({ error: 'Ano inválido.' });
+    }
+
+    // Criar a data de início do mês a partir do ano e mês fornecido
+    const startOfMonth = new Date(ano, mes - 1, 1);  // O primeiro dia do mês
     const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
 
     // Criar o final do mês baseado no mês informado
-    const endOfMonth = new Date(new Date().getFullYear(), mes, 0);  // O último dia do mês
+    const endOfMonth = new Date(ano, mes, 0);  // O último dia do mês
     const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
 
     // Verificar se o usuário é admin
@@ -217,10 +228,11 @@ router.get('/graficos/empresa-diario/:mes', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar dados da empresa-diario' });
   }
 });
-router.get('/graficos/contagens/:mes', async (req, res) => {
+
+router.get('/graficos/contagens/:ano/:mes', async (req, res) => {
   try {
-    // Extrair o mês diretamente dos parâmetros da URL
-    let { mes } = req.params;  // Obtém o mês passado como parâmetro
+    // Extrair o ano e o mês diretamente dos parâmetros da URL
+    let { ano, mes } = req.params;
 
     // Validação do mês
     if (!mes || mes.length < 1 || mes.length > 2 || isNaN(mes) || parseInt(mes) < 1 || parseInt(mes) > 12) {
@@ -240,13 +252,13 @@ router.get('/graficos/contagens/:mes', async (req, res) => {
 
     // Verificar se o mês filtrado é o mês atual
     const mesNumerico = parseInt(mes, 10);
-    const isMesAtual = mesNumerico === mesAtual;
+    const isMesAtual = mesNumerico === mesAtual && ano === String(anoAtual);
 
-    // Criar as datas de início e fim para o mês com base no mês fornecido e no ano atual
-    const startOfMonth = new Date(anoAtual, mesNumerico - 1, 1); // Início do mês
-    const endOfMonth = new Date(anoAtual, mesNumerico, 0); // Último dia do mês
+    // Criar as datas de início e fim para o mês com base no ano e mês fornecido
+    const startOfMonth = new Date(ano, mesNumerico - 1, 1); // Início do mês
+    const endOfMonth = new Date(ano, mesNumerico, 0); // Último dia do mês
 
-    // Formatar as datas
+    // Formatar as datas para o formato ISO
     const formattedStartOfMonth = startOfMonth.toISOString();
     const formattedEndOfMonth = endOfMonth.toISOString();
 
@@ -313,6 +325,40 @@ router.get('/graficos/contagens/:mes', async (req, res) => {
 });
 
 
+
+router.get('/meses', async (req, res) => {
+  try {
+    const token = req.cookies.token; // Autenticação por token, caso necessário
+    const decoded = jwt.verify(token, secretKey); // Decodifica o token
+    const empresa = decoded.empresa;
+    const isAdmin = decoded.isAdmin;
+
+    // Filtro para restringir resultados à empresa do usuário, caso não seja admin
+    const empresaFilter = isAdmin ? '' : `WHERE empresa = ${empresa}`;
+
+    const query = `
+      SELECT DISTINCT
+        EXTRACT(YEAR FROM data_cadastro) AS ano,
+        EXTRACT(MONTH FROM data_cadastro) AS mes
+      FROM formulario
+      ${empresaFilter} -- Adiciona filtro, se necessário
+      ORDER BY ano, mes; -- Ordena por ano e mês para melhor usabilidade
+    `;
+
+    const result = await pool.query(query);
+
+    // Formata o resultado para garantir retorno consistente
+    const formattedData = result.rows.map((row) => ({
+      ano: parseInt(row.ano, 10),
+      mes: parseInt(row.mes, 10),
+    }));
+
+    res.status(200).json(formattedData);
+  } catch (error) {
+    console.error('Erro ao buscar meses e anos:', error);
+    res.status(500).json({ error: 'Erro ao buscar meses e anos' });
+  }
+});
 
 
 

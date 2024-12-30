@@ -55,6 +55,24 @@ function ClientForm({ isAdmin }) {
     setVendedorSelecionado('');
   };
 
+  const deletarVeiculoInteresse = async (id) => {
+    try {
+      // Enviar a requisição DELETE para o servidor
+      const response = await fetch(`http://localhost:5000/api/veiculos/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erro ao deletar origem');
+      }
+      setVehicles((prevVehicles) => prevVehicles.filter((vehicle) => vehicle.id !== id));
+    } catch (error) {
+      console.error('Falha na exclusão da origem:', error);
+    }
+  }
   const deletarOrigem = async (id) => {
     try {
       // Enviar a requisição DELETE para o servidor
@@ -493,6 +511,24 @@ const deletarIntencaoCompra = async (id) => {
                     </option>
                   ))}
                 </select>
+                {isAdmin && (
+                  vehicles.map((carro) => (
+                    <label className="flex items-center justify-between px-4" key={carro.id}>
+                      <span className="text-gray-800 flex items-center space-x-2">
+                        {isAdmin && (
+                          <span
+                            className="text-red-700 cursor-pointer"
+                            onClick={() => deletarVeiculoInteresse(carro.id)} // Substituí origin.id por carro.id
+                          >
+                            X
+                          </span>
+                        )}
+                        <span>{carro.descricao}</span> {/* Substituí origin.descricao por carro.descricao */}
+                      </span>
+                    </label>
+                  ))
+                )}
+
                 {isAdmin && (
                   showVeiculoInput ? (
                     <div ref={veiculoInputRef} class="flex items-center space-x-4 mt-4">

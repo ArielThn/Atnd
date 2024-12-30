@@ -67,6 +67,9 @@ function UserTable() {
         })}`;
   };
   
+  const searchData = async (search) => {
+    console.log(search)
+  }
   // Função para deletar um cliente
   const deleteCliente = async (id) => {
     try {
@@ -277,13 +280,8 @@ const fetchEntryData = async (page = 1) => {
         ? specificData
         : entryData;
 
-    if (!searchTerm) return data;
+    return data;
 
-    return data.filter((item) =>
-      Object.values(item).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
   };
 
   // Funções do modal de edição (apenas na tabela geral)
@@ -459,7 +457,10 @@ const fetchEntryData = async (page = 1) => {
         <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-[#001e50] text-white">
             <tr>
-              <th className="p-3 text-left">Usuário</th>
+              <th className="p-3 text-left">Cliente</th>
+              <th className="p-3 text-left">RG</th>
+              <th className="p-3 text-left">CPF</th>
+              <th className="p-3 text-left">CNH</th>
               <th className="p-3 text-left">Vendedor</th>
               <th className="p-3 text-left">Data e Horário</th>
               <th className="p-3 text-left">Carro</th>
@@ -471,7 +472,10 @@ const fetchEntryData = async (page = 1) => {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.usuario}</td>
+                  <td className="p-3">{item.nome_cliente}</td>
+                  <td className="p-3">{item.rg_cliente}</td>
+                  <td className="p-3">{item.cpf_cliente}</td>
+                  <td className="p-3">{item.cnh_cliente}</td>
                   <td className="p-3">{item.nome_vendedor}</td>
                   <td className="p-3">{formatDate(item.data_horario)}</td>
                   <td className="p-3">{item.carro}</td>
@@ -501,7 +505,10 @@ const fetchEntryData = async (page = 1) => {
           <thead className="bg-[#001e50] text-white">
             <tr>
               <th className="p-3 text-left">Empresa</th>
-              <th className="p-3 text-left">Usuário</th>
+              <th className="p-3 text-left">Cliente</th>
+              <th className="p-3 text-left">RG</th>
+              <th className="p-3 text-left">CPF</th>
+              <th className="p-3 text-left">CNH</th>              
               <th className="p-3 text-left">Vendedor</th>
               <th className="p-3 text-left">Data de Saída</th>
               <th className="p-3 text-left">Data de Retorno</th>
@@ -514,8 +521,11 @@ const fetchEntryData = async (page = 1) => {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
-                  <td className="p-3">{item.usuario}</td>
+                  <td className="p-3">{item.id_empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
+                  <td className="p-3">{item.nome_cliente}</td>
+                  <td className="p-3">{item.rg_cliente}</td>
+                  <td className="p-3">{item.cpf_cliente}</td>
+                  <td className="p-3">{item.cnh_cliente}</td>
                   <td className="p-3">{item.nome_vendedor}</td>
                   <td className="p-3">{formatDate(item.data_horario)}</td>
                   <td className="p-3">{formatDate(item.data_retorno)}</td>
@@ -569,13 +579,24 @@ const fetchEntryData = async (page = 1) => {
       </div>
       {/* Filtro de pesquisa e filtros adicionais */}
       <div className="filter-container flex flex-col md:flex-row justify-between items-center mb-4">
+      <form
+        id="search"
+        onSubmit={(e) => {
+          e.preventDefault(); // Previne o comportamento padrão do formulário
+          searchData(searchTerm); // Chama a função de busca
+        }}
+      >
         <input
           type="text"
           placeholder="Pesquisar..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}  // Atualiza o termo de pesquisa
+          onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o termo de pesquisa
           className="search-input mb-2 md:mb-0 p-2 border border-gray-300 rounded-md"
         />
+        <button type="submit" className="p-2 bg-blue-500 text-white rounded-md">
+          Buscar
+        </button>
+      </form>
         
         <div className="search flex space-x-2">
           {/* Seletor de Mês */}

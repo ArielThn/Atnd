@@ -237,14 +237,7 @@ router.get('/registros-saida', verifyToken, async (req, res) => {
     // Consulta para buscar registros de saída pendentes (sem data_retorno)
     const query = `
       SELECT 
-        id_empresa,
-        id_saida,
-        usuario,
-        nome_vendedor,
-        data_horario,
-        carro,
-        placa,
-        observacao
+        *
       FROM registrar_saida
       WHERE id_empresa = $1
         AND data_retorno IS NULL;

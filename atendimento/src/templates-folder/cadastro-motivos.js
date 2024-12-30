@@ -9,7 +9,6 @@ const MotivosSaida = () => {
   const [descricao, setDescricao] = useState('');
   const [motivos, setMotivos] = useState([]);
   const [idEmpresa, setIdEmpresa] = useState(null);
-
   const [carro, setCarro] = useState('');
   const [placa, setPlaca] = useState('');
   const [carros, setCarros] = useState([]);
@@ -62,9 +61,54 @@ const MotivosSaida = () => {
       toast.error('Erro ao carregar a lista de carros.');
     }
   };
-  
 
+  // Função para excluir o carro
+  const deleteCarro = async (idCarro) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/carro/${idCarro}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
 
+      if (response.ok) {
+        // Filtrando o carro deletado da lista de carros
+        setCarros((prevCarros) => prevCarros.filter((carro) => carro.id_carro !== idCarro));
+        toast.success('Carro deletado com sucesso!');
+      } else {
+        const errorData = await response.json();
+        toast.error('Erro ao deletar carro: ' + errorData.message);
+      }
+    } catch (error) {
+      toast.error('Erro ao tentar deletar carro.');
+      console.error('Erro ao deletar carro:', error);
+    }
+  };
+
+  const deleteMotivo = async (idMotivo) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/motivo/${idMotivo}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setMotivos((prevMotivos) => prevMotivos.filter((motivo) => motivo.id_motivo !== idMotivo));
+        toast.success('Motivo deletado com sucesso!');
+      } else {
+        const errorData = await response.json();
+        toast.error('Erro ao deletar Motivo: ' + errorData.message);
+      }
+    } catch (error) {
+      toast.error('Erro ao tentar deletar carro.');
+      console.error('Erro ao deletar carro:', error);
+    }
+  }
   const handleMotivoSubmit = async (e) => {
     e.preventDefault();
     if (!idEmpresa) {
@@ -95,43 +139,42 @@ const MotivosSaida = () => {
     }
   };
 
-const handleCarroSubmit = async (e) => {
-  e.preventDefault();
+  const handleCarroSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!carro || !placa || !idEmpresa) {
-    toast.error('Todos os campos são obrigatórios.');
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:5000/api/carros/cadastrar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        modelo: carro, // Use "carro" para o campo modelo
-        placa: placa,
-        id_empresa: idEmpresa,
-      }),
-    });
-
-    if (response.ok) {
-      toast.success('Carro cadastrado com sucesso!');
-      setCarro(''); // Limpa o campo de modelo
-      setPlaca(''); // Limpa o campo de placa
-      fetchCarros(); // Atualiza a tabela de carros
-    } else {
-      const errorData = await response.json();
-      toast.error('Erro ao cadastrar carro: ' + errorData.message);
+    if (!carro || !placa || !idEmpresa) {
+      toast.error('Todos os campos são obrigatórios.');
+      return;
     }
-  } catch (error) {
-    toast.error('Erro ao tentar cadastrar carro.');
-    console.error('Erro ao cadastrar carro:', error);
-  }
-};
 
+    try {
+      const response = await fetch('http://localhost:5000/api/carros/cadastrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          modelo: carro, // Use "carro" para o campo modelo
+          placa: placa,
+          id_empresa: idEmpresa,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Carro cadastrado com sucesso!');
+        setCarro(''); // Limpa o campo de modelo
+        setPlaca(''); // Limpa o campo de placa
+        fetchCarros(); // Atualiza a tabela de carros
+      } else {
+        const errorData = await response.json();
+        toast.error('Erro ao cadastrar carro: ' + errorData.message);
+      }
+    } catch (error) {
+      toast.error('Erro ao tentar cadastrar carro.');
+      console.error('Erro ao cadastrar carro:', error);
+    }
+  };
 
   useEffect(() => {
     decodeToken();
@@ -187,11 +230,12 @@ const handleCarroSubmit = async (e) => {
             <div className="motivos-table-container">
               <h2 className="motivos-subtitle">Motivos Cadastrados</h2>
               <table className="motivos-table">
-                <thead>
+                <thead className='bg-[#001e50] text-white font-bold'>
                   <tr>
                     <th>ID</th>
                     <th>Descrição</th>
                     <th>ID Empresa</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,7 +244,13 @@ const handleCarroSubmit = async (e) => {
                       <tr key={motivo.id_motivo}>
                         <td>{motivo.id_motivo}</td>
                         <td>{motivo.descricao}</td>
-                        <td>{motivo.id_empresa}</td>
+                        <td className="p-3">{motivo.id_empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
+                        <td
+                          className="text-red-700 cursor-pointer"
+                          onClick={() => deleteMotivo(motivo.id_motivo)}
+                        >
+                          X
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -247,12 +297,13 @@ const handleCarroSubmit = async (e) => {
             <div className="motivos-table-container">
               <h2 className="motivos-subtitle">Carros Cadastrados</h2>
               <table className="motivos-table">
-                <thead>
+                <thead className='bg-[#001e50] text-white font-bold'>
                   <tr>
                     <th>ID</th>
                     <th>Modelo</th>
                     <th>Placa</th>
                     <th>ID Empresa</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -262,12 +313,18 @@ const handleCarroSubmit = async (e) => {
                         <td>{carro.id_carro}</td>
                         <td>{carro.modelo}</td>
                         <td>{carro.placa}</td>
-                        <td>{carro.id_empresa}</td>
+                        <td className="p-3">{carro.id_empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
+                        <td
+                          className="text-red-700 cursor-pointer"
+                          onClick={() => deleteCarro(carro.id_carro)} // Deletando carro
+                        >
+                          X
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="empty-row">Nenhum carro cadastrado.</td>
+                      <td colSpan="5" className="empty-row">Nenhum carro cadastrado.</td>
                     </tr>
                   )}
                 </tbody>
