@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from '../src/login/Login';
+import Qrcode from '../src/templates-folder/qrcode.js';
 import ProtectedRoute from '../src/ProtectedRoute';
 import MainApp from '../src/MainApp';
 import { ToastContainer } from 'react-toastify';
@@ -82,6 +83,7 @@ function App() {
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/qrcode" element={<Qrcode />} />
       </Routes>
       <ToastContainer />
     </Router>

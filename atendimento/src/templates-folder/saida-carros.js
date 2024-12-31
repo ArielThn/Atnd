@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "universal-cookie";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode"; // Correção na importação
 import "../css-folder/SaidaForm.css";
+import QRCode from "react-qr-code";
+
 const cookies = new Cookies();
 
 const SaidaForm = () => {
@@ -17,11 +19,12 @@ const SaidaForm = () => {
     carro: "",
     motivo: "",
   });
-
+  const [qrModal, setQrModal] = useState(false);
   const [carros, setCarros] = useState([]);
   const [motivos, setMotivos] = useState([]);
   const [vendedores, setVendedores] = useState([]); // Lista de vendedores
   const [loading, setLoading] = useState(false);
+  const [dataHorario, setDataHorario] = useState(""); // Novo estado para data_horario
 
   const fetchCarros = async () => {
     try {
@@ -95,77 +98,75 @@ const SaidaForm = () => {
       [name]: value,
     }));
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true); // Inicia o estado de carregamento
+  
     try {
       const token = cookies.get("token");
       if (!token)
         throw new Error("Token não encontrado. Faça login novamente.");
-
+  
       jwtDecode(token); // Certifique-se de que o token está válido
-
+  
       const [selectedModelo, selectedPlaca] = formData.carro.split(" - ");
+      const currentDataHorario = new Date().toLocaleString(); // Obtém o horário local como string
+      setDataHorario(currentDataHorario); // Atualiza o estado com o horário local
+  
       const payload = {
         nome_cliente: formData.nomeCliente,
         rg_cliente: formData.rgCliente,
         cpf_cliente: formData.cpfCliente,
         cnh_cliente: formData.cnhCliente,
         nome_vendedor: formData.nomeVendedor,
-        data_horario: new Date().toISOString(),
+        data_horario: currentDataHorario, // Usa o horário local no payload
         observacao: formData.observacao,
         carro: selectedModelo,
         placa: selectedPlaca,
         motivo: formData.motivo,
       };
-      console.log(payload)
-      // // Envia a requisição para o servidor
-      // const response = await fetch("http://localhost:5000/api/registrar-saida", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   credentials: "include",  // Inclui o cookie de autenticação
-      //   body: JSON.stringify(payload),
-      // });
   
-      // // Verifica se a resposta não foi bem-sucedida
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   console.error("Erro ao registrar a saída:", errorData); // Logando a resposta de erro
-      //   throw new Error(errorData.error || "Erro desconhecido no servidor.");
-      // }
+      // Envia a requisição para o servidor
+      const response = await fetch("http://localhost:5000/api/registrar-saida", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",  // Inclui o cookie de autenticação
+        body: JSON.stringify(payload),
+      });
   
-      // // Se a resposta for bem-sucedida
-      // const data = await response.json();
-      // toast.success("Saída registrada com sucesso!");
-      // setFormData({
-      //   nomeCliente: "",
-      //   rgCliente: "",
-      //   cpfCliente: "",
-      //   nomeVendedor: "",
-      //   dataHorario: "",
-      //   observacao: "",
-      //   carro: "",
-      //   motivo: "",
-      // });
+      // Verifica se a resposta não foi bem-sucedida
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Erro ao registrar a saída:", errorData); // Logando a resposta de erro
+        throw new Error(errorData.error || "Erro desconhecido no servidor.");
+      }
+  
+      toast.success("Saída registrada com sucesso!");
+      setQrModal(true);
     } catch (err) {
       console.error("Erro ao registrar a saída:", err);  // Logando o erro completo
       toast.error(err.message || "Erro ao registrar a saída. Tente novamente.");
     } finally {
-      setLoading(false);
+      setLoading(false); // Finaliza o estado de carregamento
     }
   };
 
+   // Função para fechar o modal
+   const handleQrModalClose = () => {
+    setQrModal(false);
+  };
+
+  console.log(`http://192.168.20.96:3000/qrcode?nome=${encodeURIComponent(formData.nomeCliente)}&data=${encodeURIComponent(dataHorario)}`)
   return (
     <div className="form-card-container">
       <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="form-card">
         <h1>Registrar Saída</h1>
-        <form className="client-form" onSubmit={(e) => {
-          handleSubmit(e);
-        }}>
+        <form className="client-form" onSubmit={handleSubmit}>
           <div className="form-section">
             <div className="pb-4">
               {/* Nome do Cliente*/}
@@ -318,6 +319,20 @@ const SaidaForm = () => {
             {loading ? "Salvando..." : "Salvar"}
           </button>
         </form>
+        {/* Modal de QR Code */}
+      {qrModal && (
+        <div className="modal-overlay" onClick={handleQrModalClose}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>QRCode para Leitura</h3>
+            {dataHorario && (
+              <QRCode 
+                value={`http://192.168.20.96:3000/qrcode?nome=${encodeURIComponent(formData.nomeCliente)}&data=${encodeURIComponent(dataHorario)}`} 
+              />
+            )}
+            <button className="close-button" onClick={handleQrModalClose}>Fechar</button>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

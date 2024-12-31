@@ -75,5 +75,9 @@ router.post('/registrar-saida', async (req, res) => {
 });
 
 
+router.post('/registrar-saida-doc', async (req, res) => {
+  const { nome_cliente, cpf_cliente, data_horario } = req.query;  // Obtém os parâmetros passados na URL
+
+});
 
 module.exports = router;

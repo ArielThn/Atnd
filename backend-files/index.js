@@ -27,6 +27,7 @@ const motivosSaidaRoutes = require('../backend-files/Routes/motivosSaidaRoutes')
 const carrosRoutesCadastrar = require('./Routes/carrosRoutesCadastrar');
 const deletarCliente = require('./Routes/deletarCliente');
 const deletarCamposForm = require('./Routes/deleteRoutes');
+const qrCode = require('./Routes/saidaDocRoute')
 const { startScheduler } = require('./sheduler');
 const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 
@@ -66,6 +67,7 @@ try {
   app.use('/', vendedoresRoutes);
   app.use('/api/motivos-saida', motivosSaidaRoutes);
   app.use('/api', carrosRoutesCadastrar);
+  app.use('/api', qrCode);
 
 } catch (error) {
   console.error('Erro ao configurar as rotas:', error.message);
