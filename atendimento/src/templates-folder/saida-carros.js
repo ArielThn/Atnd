@@ -158,6 +158,7 @@ const SaidaForm = () => {
    const handleQrModalClose = () => {
     setQrModal(false);
   };
+
   const nomeCliente = formData.nomeCliente.trim();  // Remove os espaços em excesso
   const data = dataHorario.trim();  // Remove os espaços em excesso
   

@@ -55,7 +55,7 @@ function TermoResponsabilidadeAssinatura() {
         // Você pode adicionar lógica adicional aqui, se necessário
       } else {
         alert("Nenhum registro pendente encontrado. Redirecionando para a página inicial.");
-        window.location.href = "/"; // Redireciona para o início
+        // window.location.href = "/"; // Redireciona para o início
       }
     } catch (err) {
       console.error("Erro ao buscar documentos:", err);
