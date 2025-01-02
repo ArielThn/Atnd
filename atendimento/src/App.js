@@ -15,7 +15,7 @@ function App() {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/auth/verify', {
+        const response = await fetch('http://192.168.20.96:5000/api/auth/verify', {
           method: 'GET',
           credentials: 'include',
         });
@@ -44,7 +44,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/logout', {
+      const response = await fetch('http://192.168.20.96:5000/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });

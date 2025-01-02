@@ -36,7 +36,7 @@ function Dashboard() {
   const [companyName, setCompanyName] = useState("");
   const [mesSelecionado, setMesSelecionado] = useState(() => {
     const dataAtual = new Date();
-    return dataAtual.getMonth() + 1; // Ajusta de 0-11 para 1-12
+    return dataAtual.getMonth() + 1;
   });
 
   // Lista de meses
@@ -44,7 +44,6 @@ function Dashboard() {
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
-
   // Estado para armazenar anos e meses filtrados (opcionalmente, dados do backend)
   const [anosMeses, setAnosMeses] = useState([]);
   const [anoSelecionado, setAnoSelecionado] = useState(null);
@@ -52,7 +51,7 @@ function Dashboard() {
   // Função para buscar os dados de meses e anos
   const fetchAnosMeses = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/meses", {
+      const response = await fetch("http://192.168.20.96:5000/api/meses", {
         method: "GET",
         credentials: "include", // Caso precise enviar cookies
       });
@@ -88,7 +87,7 @@ const fetchCarrosData = async () => {
   try {
 
     const response = await fetch(
-      `http://localhost:5000/api/graficos/carros/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
+      `http://192.168.20.96:5000/api/graficos/carros/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
       { credentials: "include" }
     );
 
@@ -153,7 +152,7 @@ const fetchCarrosData = async () => {
 const fetchCounts = async () => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/graficos/contagens/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
+      `http://192.168.20.96:5000/api/graficos/contagens/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
       { credentials: "include" }
     );
 
@@ -191,7 +190,7 @@ const fetchCounts = async () => {
   const fetchDataOrigem = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/graficos/origens/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
+        `http://192.168.20.96:5000/api/graficos/origens/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado
         { credentials: "include" }
       );
       const data = await response.json();
@@ -240,7 +239,7 @@ const fetchCounts = async () => {
   const fetchBarData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/graficos/empresa-diario/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado na URL
+        `http://192.168.20.96:5000/api/graficos/empresa-diario/${anoSelecionado}/${mesSelecionado}`, // Usar mês selecionado na URL
         { credentials: "include" }
       );
       const data = await response.json();

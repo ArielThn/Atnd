@@ -28,7 +28,7 @@ const SaidaForm = () => {
 
   const fetchCarros = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/carros", {
+      const response = await fetch("http://192.168.20.96:5000/api/carros", {
         credentials: "include", // Inclui os cookies na requisição
       });
       const data = await response.json();
@@ -41,7 +41,7 @@ const SaidaForm = () => {
 
   const fetchMotivos = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/motivos-saida", {
+      const response = await fetch("http://192.168.20.96:5000/api/motivos-saida", {
         credentials: "include",
       });
 
@@ -68,7 +68,7 @@ const SaidaForm = () => {
   // Função para buscar vendedores
   const fetchVendedores = async () => {
     try {
-      const response = await fetch("http://localhost:5000/TodosUsuarios", {
+      const response = await fetch("http://192.168.20.96:5000/TodosUsuarios", {
         credentials: "include",
       });
       const data = await response.json();
@@ -128,7 +128,7 @@ const SaidaForm = () => {
       };
   
       // Envia a requisição para o servidor
-      const response = await fetch("http://localhost:5000/api/registrar-saida", {
+      const response = await fetch("http://192.168.20.96:5000/api/registrar-saida", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -158,8 +158,14 @@ const SaidaForm = () => {
    const handleQrModalClose = () => {
     setQrModal(false);
   };
-
-  console.log(`http://192.168.20.96:3000/qrcode?nome=${encodeURIComponent(formData.nomeCliente)}&data=${encodeURIComponent(dataHorario)}`)
+  const nomeCliente = formData.nomeCliente.trim();  // Remove os espaços em excesso
+  const data = dataHorario.trim();  // Remove os espaços em excesso
+  
+  // Encode os dados quando passá-los como parâmetros
+  const qrPath = `qrcode?nome=${encodeURIComponent(nomeCliente)}&data=${encodeURIComponent(data)}`;
+  const qrUrl = `http://192.168.20.96:3000/${qrPath}`;
+  
+  console.log(qrUrl);
   return (
     <div className="form-card-container">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -326,7 +332,7 @@ const SaidaForm = () => {
             <h3>QRCode para Leitura</h3>
             {dataHorario && (
               <QRCode 
-                value={`http://192.168.20.96:3000/qrcode?nome=${encodeURIComponent(formData.nomeCliente)}&data=${encodeURIComponent(dataHorario)}`} 
+                value={qrUrl} 
               />
             )}
             <button className="close-button" onClick={handleQrModalClose}>Fechar</button>

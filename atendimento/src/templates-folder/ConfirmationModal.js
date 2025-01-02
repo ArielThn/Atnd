@@ -54,7 +54,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, registro, onUpdate }) =
       };
   
       // Envia os dados para o backend
-      const response = await fetch('http://localhost:5000/api/registrar-entrada', {
+      const response = await fetch('http://192.168.20.96:5000/api/registrar-entrada', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -240,7 +240,9 @@ router.get('/registros-saida', verifyToken, async (req, res) => {
         *
       FROM registrar_saida
       WHERE id_empresa = $1
-        AND data_retorno IS NULL;
+        AND data_retorno IS NULL
+        AND cnh_foto IS NOT NULL
+        AND termo_responsabilidade IS NOT NULL;
     `;
 
     const result = await pool.query(query, [empresa]);

@@ -5,6 +5,8 @@ import '../css-folder/registros.css';
 import {jwtDecode} from 'jwt-decode';
 
 function UserTable() {
+  const [showCnhModal, setShowCnhModal] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   // Estados para dados e paginação da Tabela Geral
   const [generalData, setGeneralData] = useState([]);
   const [generalPagination, setGeneralPagination] = useState({
@@ -67,13 +69,10 @@ function UserTable() {
         })}`;
   };
   
-  const searchData = async (search) => {
-    console.log(search)
-  }
   // Função para deletar um cliente
   const deleteCliente = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/deletar_cliente/${id}`, {
+      const response = await fetch(`http://192.168.20.96:5000/api/deletar_cliente/${id}`, {
         method: 'DELETE',
       });
 
@@ -100,7 +99,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchOrigins() {
       try {
-        const response = await fetch('http://localhost:5000/api/origem');
+        const response = await fetch('http://192.168.20.96:5000/api/origem');
         const data = await response.json();
         setOrigins(data);
       } catch (error) {
@@ -113,7 +112,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchIntentions() {
       try {
-        const response = await fetch('http://localhost:5000/api/intencao-compra');
+        const response = await fetch('http://192.168.20.96:5000/api/intencao-compra');
         const data = await response.json();
         setIntentions(data);
       } catch (error) {
@@ -126,7 +125,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchVehicles() {
       try {
-        const response = await fetch('http://localhost:5000/api/veiculos');
+        const response = await fetch('http://192.168.20.96:5000/api/veiculos');
         const data = await response.json();
         setVehicles(data);
       } catch (error) {
@@ -139,7 +138,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchVendedores() {
       try {
-        const response = await fetch('http://localhost:5000/api/vendedores', { credentials: 'include' });
+        const response = await fetch('http://192.168.20.96:5000/api/vendedores', { credentials: 'include' });
         const data = await response.json();
         if (Array.isArray(data)) {
           setVendedores(data);
@@ -157,7 +156,7 @@ function UserTable() {
   const fetchGeneralData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/formularios?month=${month}&company=${company}&page=${page}`,
+        `http://192.168.20.96:5000/api/formularios?month=${month}&company=${company}&page=${page}`,
         { credentials: 'include' }
       );
       if (!response.ok) throw new Error('Erro ao buscar dados.');
@@ -185,7 +184,7 @@ function UserTable() {
   const fetchSpecificData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/historico-saida-pendentes?mes=${month}&company=${company}&page=${page}`,
+        `http://192.168.20.96:5000/api/historico-saida-pendentes?mes=${month}&company=${company}&page=${page}`,
         { credentials: 'include' }
       );
       if (!response.ok) throw new Error('Erro ao buscar dados.');
@@ -193,7 +192,6 @@ function UserTable() {
       const data = await response.json();
   
       // Verificando se a resposta contém o formato correto
-      console.log("Resposta da API:", data);
   
       // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
       if (data.records && typeof data.currentPage === 'number') {
@@ -216,7 +214,7 @@ function UserTable() {
 const fetchEntryData = async (page = 1) => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/historico-entrada?mes=${month}&empresa=${company}&page=${page}`,
+      `http://192.168.20.96:5000/api/historico-entrada?mes=${month}&empresa=${company}&page=${page}`,
       { credentials: 'include' }
     );
     if (!response.ok) throw new Error('Erro ao buscar dados.');
@@ -224,7 +222,6 @@ const fetchEntryData = async (page = 1) => {
     const data = await response.json();
 
     // Verificando se a resposta contém o formato correto
-    console.log("Resposta da API:", data);
 
     // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
     if (data.records && typeof data.currentPage === 'number') {
@@ -257,15 +254,12 @@ const fetchEntryData = async (page = 1) => {
     if (activeTable === 'geral') {
       setGeneralPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchGeneralData(1);
-      console.log("Dados gerais carregados:", generalData);
     } else if (activeTable === 'saida') {
       setSpecificPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchSpecificData(1);
-      console.log("Dados de saída carregados:", specificData);
     } else if (activeTable === 'entrada') {
       setEntryPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchEntryData(1);
-      console.log("Dados de entrada carregados:", entryData);
 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -284,19 +278,50 @@ const fetchEntryData = async (page = 1) => {
 
   };
 
-  // Funções do modal de edição (apenas na tabela geral)
-  const openEditModal = (user) => {
-    if (activeTable === 'geral') {
-      setSelectedUser(user);
-      setShowEditModal(true);
+
+  // Função para carregar a imagem e abrir o modal
+  const getImage = async (id) => {
+    try {
+
+      const imageUrl = `http://192.168.20.96:5000/api/foto_cnh/${id}`
+      // Atualiza a URL da imagem e abre o modal
+      setImageUrl(imageUrl);
+      setShowCnhModal(true);
+    } catch (error) {
+      console.error('Erro ao carregar imagem:', error);
+      toast.error('Não foi possível carregar a imagem da CNH.', {
+        position: 'top-right',
+        autoClose: 5000,
+      });
     }
   };
+
+
+  // Função para fechar o modal
+  const closeModal = () => {
+    setShowCnhModal(false);
+    if (imageUrl) {
+      URL.revokeObjectURL(imageUrl); // Revoga a URL para liberar memória
+      setImageUrl(''); // Limpa a URL da imagem ao fechar
+    }
+  };
+
+    // Funções do modal de edição (apenas na tabela geral)
+    const openEditModal = (user) => {
+      if (activeTable === 'geral') {
+        setSelectedUser(user);
+        setShowEditModal(true);
+      }
+    };
 
   const closeEditModal = () => {
     setShowEditModal(false);
     setSelectedUser(null);
   };
 
+  const searchData = () => {
+
+  }
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setSelectedUser((prevUser) => ({ ...prevUser, [name]: value }));
@@ -305,7 +330,7 @@ const fetchEntryData = async (page = 1) => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/formularios/${selectedUser.id}`, { // Usando id_saida
+      const response = await fetch(`http://192.168.20.96:5000/api/formularios/${selectedUser.id}`, { // Usando id_saida
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -393,7 +418,6 @@ const fetchEntryData = async (page = 1) => {
         <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-[#001e50] text-white">
             <tr>
-              <th className="p-3 text-left">Empresa</th>
               <th className="p-3 text-left">Nome</th>
               <th className="p-3 text-left">Telefone</th>
               <th className="p-3 text-left">CPF</th>
@@ -409,7 +433,6 @@ const fetchEntryData = async (page = 1) => {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
                   <td className="p-3">{item.nome}</td>
                   <td className="p-3">{item.telefone}</td>
                   <td className="p-3">{item.cpf}</td>
@@ -475,7 +498,14 @@ const fetchEntryData = async (page = 1) => {
                   <td className="p-3">{item.nome_cliente}</td>
                   <td className="p-3">{item.rg_cliente}</td>
                   <td className="p-3">{item.cpf_cliente}</td>
-                  <td className="p-3">{item.cnh_cliente}</td>
+                  <td
+                    className={`p-3`}
+                    onClick={item.cnh_foto ? () => getImage(item.id_saida) : undefined}
+                  >
+                    <span className={`${item.cnh_foto ? "cursor-pointer text-blue-500 border-b-2 border-blue-500" : ""}`}>
+                      {item.cnh_cliente}
+                    </span>
+                  </td>
                   <td className="p-3">{item.nome_vendedor}</td>
                   <td className="p-3">{formatDate(item.data_horario)}</td>
                   <td className="p-3">{item.carro}</td>
@@ -504,7 +534,6 @@ const fetchEntryData = async (page = 1) => {
         <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-[#001e50] text-white">
             <tr>
-              <th className="p-3 text-left">Empresa</th>
               <th className="p-3 text-left">Cliente</th>
               <th className="p-3 text-left">RG</th>
               <th className="p-3 text-left">CPF</th>
@@ -521,11 +550,17 @@ const fetchEntryData = async (page = 1) => {
             {filteredData().length > 0 ? (
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
-                  <td className="p-3">{item.id_empresa === 1 ? 'Trescinco' : 'Ariel'}</td>
                   <td className="p-3">{item.nome_cliente}</td>
                   <td className="p-3">{item.rg_cliente}</td>
                   <td className="p-3">{item.cpf_cliente}</td>
-                  <td className="p-3">{item.cnh_cliente}</td>
+                  <td
+                    className={`p-3`}
+                    onClick={item.cnh_foto ? () => getImage(item.id_saida) : undefined}
+                  >
+                    <span className={`${item.cnh_foto ? "cursor-pointer text-blue-500 border-b-2 border-blue-500" : ""}`}>
+                      {item.cnh_cliente}
+                    </span>
+                  </td>
                   <td className="p-3">{item.nome_vendedor}</td>
                   <td className="p-3">{formatDate(item.data_horario)}</td>
                   <td className="p-3">{formatDate(item.data_retorno)}</td>
@@ -794,6 +829,21 @@ const fetchEntryData = async (page = 1) => {
           </div>
         </div>
       )}
+      {showCnhModal && (
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+        onClick={closeModal}
+      >
+        <div
+          className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white p-4 rounded-lg">
+            <img src={imageUrl} alt="Foto CNH" className="w-auto h-auto" />
+          </div>
+        </div>
+      </div>
+      )};
     </div>
   );
 }

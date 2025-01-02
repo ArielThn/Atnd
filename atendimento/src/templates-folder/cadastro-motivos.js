@@ -34,7 +34,7 @@ const MotivosSaida = () => {
 
   const fetchMotivos = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/motivos-saida/listar', {
+      const response = await fetch('http://192.168.20.96:5000/api/motivos-saida/listar', {
         credentials: 'include',
       });
       if (response.ok) {
@@ -51,7 +51,7 @@ const MotivosSaida = () => {
   // Função para buscar carros
   const fetchCarros = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/carros', {
+      const response = await fetch('http://192.168.20.96:5000/api/carros', {
         credentials: 'include', // Inclui os cookies na requisição
       });
       const data = await response.json();
@@ -65,7 +65,7 @@ const MotivosSaida = () => {
   // Função para excluir o carro
   const deleteCarro = async (idCarro) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/carro/${idCarro}`, {
+      const response = await fetch(`http://192.168.20.96:5000/api/carro/${idCarro}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ const MotivosSaida = () => {
 
   const deleteMotivo = async (idMotivo) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/motivo/${idMotivo}`, {
+      const response = await fetch(`http://192.168.20.96:5000/api/motivo/${idMotivo}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ const MotivosSaida = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/motivos-saida/cadastrar', {
+      const response = await fetch('http://192.168.20.96:5000/api/motivos-saida/cadastrar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ const MotivosSaida = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/carros/cadastrar', {
+      const response = await fetch('http://192.168.20.96:5000/api/carros/cadastrar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

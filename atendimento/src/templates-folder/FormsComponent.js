@@ -58,7 +58,7 @@ function ClientForm({ isAdmin }) {
   const deletarVeiculoInteresse = async (id) => {
     try {
       // Enviar a requisição DELETE para o servidor
-      const response = await fetch(`http://localhost:5000/api/veiculos/${id}`, {
+      const response = await fetch(`http://192.168.20.96:5000/api/veiculos/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ function ClientForm({ isAdmin }) {
   const deletarOrigem = async (id) => {
     try {
       // Enviar a requisição DELETE para o servidor
-      const response = await fetch(`http://localhost:5000/api/origem/${id}`, {
+      const response = await fetch(`http://192.168.20.96:5000/api/origem/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ function ClientForm({ isAdmin }) {
 const deletarIntencaoCompra = async (id) => {
   try {
     // Enviar a requisição DELETE para a rota de intenção de compra
-    const response = await fetch(`http://localhost:5000/api/intencao-compra/${id}`, {
+    const response = await fetch(`http://192.168.20.96:5000/api/intencao-compra/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ const deletarIntencaoCompra = async (id) => {
   useEffect(() => {
     async function fetchOrigins() {
       try {
-        const response = await fetch('http://localhost:5000/api/origem');
+        const response = await fetch('http://192.168.20.96:5000/api/origem');
         const data = await response.json();
         setOrigins(data);
       } catch (error) {
@@ -135,7 +135,7 @@ const deletarIntencaoCompra = async (id) => {
   useEffect(() => {
     async function fetchIntentions() {
       try {
-        const response = await fetch('http://localhost:5000/api/intencao-compra');
+        const response = await fetch('http://192.168.20.96:5000/api/intencao-compra');
         const data = await response.json();
         setIntentions(data);
       } catch (error) {
@@ -148,7 +148,7 @@ const deletarIntencaoCompra = async (id) => {
   useEffect(() => {
     async function fetchVehicles() {
       try {
-        const response = await fetch('http://localhost:5000/api/veiculos');
+        const response = await fetch('http://192.168.20.96:5000/api/veiculos');
         const data = await response.json();
         setVehicles(data);
       } catch (error) {
@@ -161,7 +161,7 @@ const deletarIntencaoCompra = async (id) => {
   useEffect(() => {
     async function fetchVendedores() {
       try {
-        const response = await fetch('http://localhost:5000/api/vendedores', { credentials: 'include' });
+        const response = await fetch('http://192.168.20.96:5000/api/vendedores', { credentials: 'include' });
         const data = await response.json();
         if (Array.isArray(data)) {
           setVendedores(data);
@@ -178,7 +178,7 @@ const deletarIntencaoCompra = async (id) => {
   const addNewOrigem = async () => {
     try {
       const upper = newOrigem.toUpperCase()
-      const response = await fetch('http://localhost:5000/api/origem', {
+      const response = await fetch('http://192.168.20.96:5000/api/origem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ descricao: upper }),
@@ -203,7 +203,7 @@ const deletarIntencaoCompra = async (id) => {
     try {
       const upper = newIntencao.toUpperCase()
 
-      const response = await fetch('http://localhost:5000/api/intencao-compra', {
+      const response = await fetch('http://192.168.20.96:5000/api/intencao-compra', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ descricao: upper }),
@@ -234,7 +234,7 @@ const deletarIntencaoCompra = async (id) => {
     try {
       const upper = newVeiculo.toUpperCase()
 
-      const response = await fetch('http://localhost:5000/api/veiculos', {
+      const response = await fetch('http://192.168.20.96:5000/api/veiculos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ descricao: upper }),
@@ -276,7 +276,7 @@ const deletarIntencaoCompra = async (id) => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/clientes', {
+      const response = await fetch('http://192.168.20.96:5000/api/clientes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

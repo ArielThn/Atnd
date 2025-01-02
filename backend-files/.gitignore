@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+# arquivos
+/arquivos/foto_cnh
+/arquivos/termo_responsabilidade

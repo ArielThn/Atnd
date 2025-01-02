@@ -10,7 +10,7 @@ function EntradaCarrosTabela() {
   // Função para buscar os dados de entrada
   const fetchEntryData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/historico-entrada', { credentials: 'include' });
+      const response = await fetch('http://192.168.20.96:5000/api/historico-entrada', { credentials: 'include' });
       if (!response.ok) throw new Error('Erro ao buscar dados de entrada.');
       const data = await response.json();
 

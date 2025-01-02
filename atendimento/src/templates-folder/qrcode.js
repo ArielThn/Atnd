@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 // Obtenha a URL da API a partir das variáveis de ambiente
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:5000/api";
 
 function TermoResponsabilidadeAssinatura() {
   const clientSignatureRef = useRef(null);

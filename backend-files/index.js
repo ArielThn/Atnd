@@ -28,18 +28,18 @@ const carrosRoutesCadastrar = require('./Routes/carrosRoutesCadastrar');
 const deletarCliente = require('./Routes/deletarCliente');
 const deletarCamposForm = require('./Routes/deleteRoutes');
 const qrCode = require('./Routes/saidaDocRoute')
+const imageRoute = require('./Routes/imageRoute.js')
 const { startScheduler } = require('./sheduler');
 const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
+const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://192.168.20.96:3000'];
 app.use(cors({
-  origin: 'http://localhost:3000', // Origem do frontend
-  credentials: true, // Permite o envio de cookies
+  origin: allowedOrigins,
+  credentials: true,
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 
@@ -68,6 +68,7 @@ try {
   app.use('/api/motivos-saida', motivosSaidaRoutes);
   app.use('/api', carrosRoutesCadastrar);
   app.use('/api', qrCode);
+  app.use('/api', imageRoute);
 
 } catch (error) {
   console.error('Erro ao configurar as rotas:', error.message);
@@ -96,8 +97,8 @@ try {
 } catch (error) {
   console.error('Erro ao executar a sincronização inicial de usuários:', error.message);
 }
+const host = '0.0.0.0';
 
-// Iniciar o servidor
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+app.listen(port, host, () => {
+  console.log(`Servidor rodando em http://${host}:${port}`);
 });
