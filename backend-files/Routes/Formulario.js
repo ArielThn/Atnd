@@ -35,21 +35,6 @@ router.post('/veiculos', async (req, res) => {
   }
 });
 
-router.post('/origem', authenticate, async (req, res) => {
-  const { descricao } = req.body;
-
-  try {
-    const result = await pool.query(
-      `INSERT INTO origem (descricao) VALUES ($1) RETURNING *`,
-      [descricao]
-    );
-    res.status(201).json({ message: 'Origem adicionada com sucesso!', origem: result.rows[0] });
-  } catch (error) {
-    console.error('Erro ao adicionar origem:', error);
-    res.status(500).json({ error: 'Erro ao adicionar origem' });
-  }
-});
-
 router.post('/clientes', authenticate, async (req, res) => {
   const {
     acompanhantes = null,

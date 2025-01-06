@@ -324,8 +324,6 @@ router.get('/graficos/contagens/:ano/:mes', async (req, res) => {
   }
 });
 
-
-
 router.get('/meses', async (req, res) => {
   try {
     const token = req.cookies.token; // Autenticação por token, caso necessário

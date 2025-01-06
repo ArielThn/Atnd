@@ -1,66 +1,75 @@
-import React, { useState, useEffect } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "../css-folder/registros.css";
-import { jwtDecode } from "jwt-decode";
-import { FaEdit, FaTrash, FaFileAlt } from "react-icons/fa";
+import React, { useState, useEffect } from "react"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import "../css-folder/registros.css"
+import {jwtDecode} from "jwt-decode" // Importação corrigida
+import { FaEdit, FaTrash, FaFileAlt } from "react-icons/fa"
 
 function UserTable() {
-  const [showCnhModal, setShowCnhModal] = useState(false);
-  const [imageUrl, setImageUrl] = useState("");
+  const [showCnhModal, setShowCnhModal] = useState(false)
+  const [imageUrl, setImageUrl] = useState("")
+
   // Estados para dados e paginação da Tabela Geral
-  const [generalData, setGeneralData] = useState([]);
+  const [generalData, setGeneralData] = useState([])
   const [generalPagination, setGeneralPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalRecords: 0,
-  });
+  })
 
   // Estados para dados e paginação da Tabela Saída
-  const [specificData, setSpecificData] = useState([]);
+  const [specificData, setSpecificData] = useState([])
   const [specificPagination, setSpecificPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalRecords: 0,
-  });
+  })
 
   // Estados para dados e paginação da Tabela Entrada
-  const [entryData, setEntryData] = useState([]);
+  const [entryData, setEntryData] = useState([])
   const [entryPagination, setEntryPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalRecords: 0,
-  });
+  })
 
   // Estados para filtros e busca
-  const [month, setMonth] = useState(0); // Valor padrão '0' para 'Todos os Meses'
-  const [company, setCompany] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [month, setMonth] = useState(0) // Valor padrão '0' para 'Todos os Meses'
+  const [company, setCompany] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("")
 
   // Estado para tabela ativa
-  const [activeTable, setActiveTable] = useState("geral"); // 'geral', 'saida', 'entrada'
+  const [activeTable, setActiveTable] = useState("geral") // 'geral', 'saida', 'entrada'
 
   // Estados para dados auxiliares
-  const [origins, setOrigins] = useState([]);
-  const [intentions, setIntentions] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
-  const [vendedores, setVendedores] = useState([]);
+  const [origins, setOrigins] = useState([])
+  const [intentions, setIntentions] = useState([])
+  const [vehicles, setVehicles] = useState([])
+  const [vendedores, setVendedores] = useState([])
 
   // Decodificação do token para obter informações do usuário
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("token="))
-    ?.split("=")[1];
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(";").shift()
+    return null
+  }
 
-  const decoded = token ? jwtDecode(token) : null;
+  const token = getCookie("token")
+  let decoded = null
+  try {
+    decoded = token ? jwtDecode(token) : null
+  } catch (error) {
+    console.error("Token inválido:", error)
+  }
 
   // Estados para edição
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   const formatDate = (dateString, timeZone = "America/Cuiaba") => {
-    if (!dateString) return "Data não disponível";
-    const date = new Date(dateString);
+    if (!dateString) return "Data não disponível"
+    const date = new Date(dateString)
     return isNaN(date.getTime())
       ? "Data inválida"
       : `${date.toLocaleDateString("pt-BR", { timeZone })} ${date.toLocaleTimeString(
@@ -71,8 +80,8 @@ function UserTable() {
             second: "2-digit",
             timeZone,
           },
-        )}`;
-  };
+        )}`
+  }
 
   // Função para deletar um cliente
   const deleteCliente = async (id) => {
@@ -82,71 +91,71 @@ function UserTable() {
         {
           method: "DELETE",
         },
-      );
+      )
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erro ao deletar cliente");
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erro ao deletar cliente")
       }
 
       toast.success("Cliente deletado com sucesso!", {
         position: "top-right",
         autoClose: 3000,
-      });
+      })
       // Refrescar dados da tabela após deleção
       if (activeTable === "geral")
-        fetchGeneralData(generalPagination.currentPage);
+        fetchGeneralData(generalPagination.currentPage)
       else if (activeTable === "saida")
-        fetchSpecificData(specificPagination.currentPage);
+        fetchSpecificData(specificPagination.currentPage)
       else if (activeTable === "entrada")
-        fetchEntryData(entryPagination.currentPage);
+        fetchEntryData(entryPagination.currentPage)
     } catch (error) {
-      console.error("Erro ao tentar deletar cliente:", error);
-      toast.error("Erro ao tentar deletar cliente");
+      console.error("Erro ao tentar deletar cliente:", error)
+      toast.error("Erro ao tentar deletar cliente")
     }
-  };
+  }
 
   // Fetch de dados para alterar
   useEffect(() => {
     async function fetchOrigins() {
       try {
-        const response = await fetch("http://192.168.20.96:5000/api/origem");
-        const data = await response.json();
-        setOrigins(data);
+        const response = await fetch("http://192.168.20.96:5000/api/origem")
+        const data = await response.json()
+        setOrigins(data)
       } catch (error) {
-        console.error("Erro ao buscar origens:", error);
+        console.error("Erro ao buscar origens:", error)
       }
     }
-    fetchOrigins();
-  }, []);
+    fetchOrigins()
+  }, [])
 
   useEffect(() => {
     async function fetchIntentions() {
       try {
         const response = await fetch(
           "http://192.168.20.96:5000/api/intencao-compra",
-        );
-        const data = await response.json();
-        setIntentions(data);
+        )
+        const data = await response.json()
+        setIntentions(data)
       } catch (error) {
-        console.error("Erro ao buscar intenções de compra:", error);
+        console.error("Erro ao buscar intenções de compra:", error)
       }
     }
-    fetchIntentions();
-  }, []);
+    fetchIntentions()
+  }, [])
 
   useEffect(() => {
     async function fetchVehicles() {
       try {
-        const response = await fetch("http://192.168.20.96:5000/api/veiculos");
-        const data = await response.json();
-        setVehicles(data);
+        const response = await fetch("http://192.168.20.96:5000/api/veiculos")
+        const data = await response.json()
+        setVehicles(data)
       } catch (error) {
-        console.error("Erro ao buscar veículos de interesse:", error);
+        console.error("Erro ao buscar veículos de interesse:", error)
       }
     }
-    fetchVehicles();
-  }, []);
+    fetchVehicles()
+  }, [])
 
   useEffect(() => {
     async function fetchVendedores() {
@@ -154,19 +163,19 @@ function UserTable() {
         const response = await fetch(
           "http://192.168.20.96:5000/api/vendedores",
           { credentials: "include" },
-        );
-        const data = await response.json();
+        )
+        const data = await response.json()
         if (Array.isArray(data)) {
-          setVendedores(data);
+          setVendedores(data)
         } else {
-          console.error("A resposta dos vendedores não é uma lista:", data);
+          console.error("A resposta dos vendedores não é uma lista:", data)
         }
       } catch (error) {
-        console.error("Erro ao buscar vendedores:", error);
+        console.error("Erro ao buscar vendedores:", error)
       }
     }
-    fetchVendedores();
-  }, []);
+    fetchVendedores()
+  }, [])
 
   // Função de busca para a Tabela Geral
   const fetchGeneralData = async (page = 1) => {
@@ -174,27 +183,27 @@ function UserTable() {
       const response = await fetch(
         `http://192.168.20.96:5000/api/formularios?month=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
-      );
-      if (!response.ok) throw new Error("Erro ao buscar dados.");
+      )
+      if (!response.ok) throw new Error("Erro ao buscar dados.")
 
-      const data = await response.json();
+      const data = await response.json()
 
       // Verifique se a resposta possui os campos esperados
       if (data.records && typeof data.currentPage === "number") {
-        setGeneralData(data.records);
+        setGeneralData(data.records)
         setGeneralPagination({
           currentPage: data.currentPage,
           totalPages: data.totalPages,
           totalRecords: data.totalRecords,
-        });
+        })
       } else {
-        throw new Error("Resposta da API em formato inesperado.");
+        throw new Error("Resposta da API em formato inesperado.")
       }
     } catch (error) {
-      console.error(`Erro ao buscar dados de formularios:`, error);
-      toast.error("Erro ao buscar dados.");
+      console.error(`Erro ao buscar dados de formularios:`, error)
+      toast.error("Erro ao buscar dados.")
     }
-  };
+  }
 
   // Função de busca para as Tabelas Saída e Entrada (modificadas para usar os novos endpoints)
   const fetchSpecificData = async (page = 1) => {
@@ -202,84 +211,84 @@ function UserTable() {
       const response = await fetch(
         `http://192.168.20.96:5000/api/historico-saida-pendentes?mes=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
-      );
-      if (!response.ok) throw new Error("Erro ao buscar dados.");
+      )
+      if (!response.ok) throw new Error("Erro ao buscar dados.")
 
-      const data = await response.json();
+      const data = await response.json()
 
       // Verificando se a resposta contém o formato correto
 
       // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
       if (data.records && typeof data.currentPage === "number") {
-        setSpecificData(data.records); // Aqui é onde você seta os dados
+        setSpecificData(data.records) // Aqui é onde você seta os dados
         setSpecificPagination({
           currentPage: data.currentPage,
           totalPages: data.totalPages,
           totalRecords: data.totalRecords,
-        });
+        })
       } else {
-        throw new Error("Resposta da API em formato inesperado.");
+        throw new Error("Resposta da API em formato inesperado.")
       }
     } catch (error) {
-      console.error(`Erro ao buscar dados de historico-entrada:`, error);
-      toast.error("Erro ao buscar dados de Entrada.");
+      console.error(`Erro ao buscar dados de historico-saida-pendentes:`, error)
+      toast.error("Erro ao buscar dados de Saída.")
     }
-  };
+  }
 
   const fetchEntryData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:5000/api/historico-entrada?mes=${month}&empresa=${company}&page=${page}`,
+        `http://192.168.20.96:5000/api/historico-entrada?mes=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
-      );
-      if (!response.ok) throw new Error("Erro ao buscar dados.");
+      )
+      if (!response.ok) throw new Error("Erro ao buscar dados.")
 
-      const data = await response.json();
+      const data = await response.json()
 
       // Verificando se a resposta contém o formato correto
 
       // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
       if (data.records && typeof data.currentPage === "number") {
-        setEntryData(data.records); // Aqui é onde você seta os dados
+        setEntryData(data.records) // Aqui é onde você seta os dados
         setEntryPagination({
           currentPage: data.currentPage,
           totalPages: data.totalPages,
           totalRecords: data.totalRecords,
-        });
+        })
       } else {
-        throw new Error("Resposta da API em formato inesperado.");
+        throw new Error("Resposta da API em formato inesperado.")
       }
     } catch (error) {
-      console.error(`Erro ao buscar dados de historico-entrada:`, error);
-      toast.error("Erro ao buscar dados de Entrada.");
+      console.error(`Erro ao buscar dados de historico-entrada:`, error)
+      toast.error("Erro ao buscar dados de Entrada.")
     }
-  };
+  }
 
   // Buscar dados quando a tabela ativa, filtros ou página mudam
   useEffect(() => {
     if (activeTable === "geral")
-      fetchGeneralData(generalPagination.currentPage);
+      fetchGeneralData(generalPagination.currentPage)
     else if (activeTable === "saida")
-      fetchSpecificData(specificPagination.currentPage);
+      fetchSpecificData(specificPagination.currentPage)
     else if (activeTable === "entrada")
-      fetchEntryData(entryPagination.currentPage);
+      fetchEntryData(entryPagination.currentPage)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTable, month, company]);
+  }, [activeTable, month, company])
 
   // Resetar página quando filtros mudam
   useEffect(() => {
     if (activeTable === "geral") {
-      setGeneralPagination((prev) => ({ ...prev, currentPage: 1 }));
-      fetchGeneralData(1);
+      setGeneralPagination((prev) => ({ ...prev, currentPage: 1 }))
+      fetchGeneralData(1)
     } else if (activeTable === "saida") {
-      setSpecificPagination((prev) => ({ ...prev, currentPage: 1 }));
-      fetchSpecificData(1);
+      setSpecificPagination((prev) => ({ ...prev, currentPage: 1 }))
+      fetchSpecificData(1)
     } else if (activeTable === "entrada") {
-      setEntryPagination((prev) => ({ ...prev, currentPage: 1 }));
-      fetchEntryData(1);
+      setEntryPagination((prev) => ({ ...prev, currentPage: 1 }))
+      fetchEntryData(1)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month, company]);
+  }, [month, company])
 
   // Filtrar dados com base no termo de pesquisa
   const filteredData = () => {
@@ -288,68 +297,110 @@ function UserTable() {
         ? generalData
         : activeTable === "saida"
           ? specificData
-          : entryData;
+          : entryData
 
-    return data;
-  };
+    if (!searchTerm) return data
+
+    return data.filter((item) =>
+      Object.values(item).some(
+        (value) =>
+          value &&
+          value
+            .toString()
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      )
+    )
+  }
 
   const qrCode = async (nomeCliente, dataHorario) => {
     // Remove os espaços em excesso
-    const nomeClienteTrimmed = nomeCliente.trim();
-    const dataTrimmed = dataHorario.trim();
+    const nomeClienteTrimmed = nomeCliente.trim()
+    const dataTrimmed = dataHorario.trim()
 
     // Encode os dados para serem usados na URL
-    const qrPath = `qrcode?nome=${encodeURIComponent(nomeClienteTrimmed)}&data=${encodeURIComponent(dataTrimmed)}`;
-    const qrUrl = `http://192.168.20.96:3000/${qrPath}`;
+    const qrPath = `qrcode?nome=${encodeURIComponent(nomeClienteTrimmed)}&data=${encodeURIComponent(dataTrimmed)}`
+    const qrUrl = `http://192.168.20.96:3000/${qrPath}`
 
-    console.log(qrUrl);
-  };
+    console.log(qrUrl)
+    // Implementar lógica adicional para exibir o QR code, se necessário
+  }
+
   // Função para carregar a imagem e abrir o modal
   const getImage = async (id) => {
     try {
-      const imageUrl = `http://192.168.20.96:5000/api/foto_cnh/${id}`;
+      const imageUrl = `http://192.168.20.96:5000/api/foto_cnh/${id}`
       // Atualiza a URL da imagem e abre o modal
-      setImageUrl(imageUrl);
-      setShowCnhModal(true);
+      setImageUrl(imageUrl)
+      setShowCnhModal(true)
     } catch (error) {
-      console.error("Erro ao carregar imagem:", error);
+      console.error("Erro ao carregar imagem:", error)
       toast.error("Não foi possível carregar a imagem da CNH.", {
         position: "top-right",
         autoClose: 5000,
-      });
+      })
     }
-  };
+  }
 
-  // Função para fechar o modal
-  const closeModal = () => {
-    setShowCnhModal(false);
-    if (imageUrl) {
-      URL.revokeObjectURL(imageUrl); // Revoga a URL para liberar memória
-      setImageUrl(""); // Limpa a URL da imagem ao fechar
+// Função para carregar o PDF e iniciar o download
+const getPdf = async (id) => {
+  try {
+    // Definindo a URL do PDF
+    const pdfUrl = `http://192.168.20.96:5000/api/termo_responsabilidade/${id}`;
+    
+    // Realizando uma requisição para verificar se o arquivo existe
+    const response = await fetch(pdfUrl, { method: 'HEAD' });
+
+    if (!response.ok) {
+      // Se a resposta não for 200 (OK), ativa o toast de erro
+      throw new Error("PDF não encontrado ou não acessível.");
     }
-  };
+
+    // Criar um link dinamicamente para iniciar o download
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `termo_responsabilidade_${id}.pdf`;  // Define o nome do arquivo a ser baixado
+    document.body.appendChild(a);  // Adiciona o link ao corpo do documento
+    a.click();  // Simula o clique no link para iniciar o download
+    document.body.removeChild(a);  // Remove o link após o clique
+
+  } catch (error) {
+    console.error("Erro ao carregar ou baixar o PDF:", error);
+
+    // Ativa o toast de erro caso o PDF não possa ser carregado ou baixado
+    toast.error("Não foi possível carregar o PDF do termo de responsabilidade.", {
+      position: "top-right",
+      autoClose: 5000,
+    });
+  }
+};
+
+  // Função para fechar o modal de CNH
+  const closeCnhModal = () => {
+    setShowCnhModal(false)
+    setImageUrl("") // Limpa a URL da imagem ao fechar
+  }
 
   // Funções do modal de edição (apenas na tabela geral)
   const openEditModal = (user) => {
     if (activeTable === "geral") {
-      setSelectedUser(user);
-      setShowEditModal(true);
+      setSelectedUser(user)
+      setShowEditModal(true)
     }
-  };
+  }
 
   const closeEditModal = () => {
-    setShowEditModal(false);
-    setSelectedUser(null);
-  };
+    setShowEditModal(false)
+    setSelectedUser(null)
+  }
 
-  const searchData = () => {};
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedUser((prevUser) => ({ ...prevUser, [name]: value }));
-  };
+    const { name, value } = e.target
+    setSelectedUser((prevUser) => ({ ...prevUser, [name]: value }))
+  }
 
   const handleEditSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       const response = await fetch(
         `http://192.168.20.96:5000/api/formularios/${selectedUser.id}`,
@@ -361,35 +412,35 @@ function UserTable() {
           },
           body: JSON.stringify(selectedUser),
         },
-      );
+      )
 
       if (response.ok) {
-        const updatedUser = await response.json();
+        const updatedUser = await response.json()
         setGeneralData((prevUsers) =>
           prevUsers.map((user) =>
             user.id_saida === updatedUser.id_saida ? updatedUser : user,
           ),
-        );
+        )
         toast.success("Dados atualizados com sucesso!", {
           position: "top-right",
           autoClose: 3000,
-        });
-        closeEditModal();
-        fetchGeneralData(generalPagination.currentPage); // Atualiza a tabela geral após edição
+        })
+        closeEditModal()
+        fetchGeneralData(generalPagination.currentPage) // Atualiza a tabela geral após edição
       } else {
         toast.error("Erro ao atualizar os dados.", {
           position: "top-right",
           autoClose: 3000,
-        });
+        })
       }
     } catch (error) {
-      console.error("Erro ao atualizar dados:", error);
+      console.error("Erro ao atualizar dados:", error)
       toast.error("Erro ao atualizar os dados. Tente novamente.", {
         position: "top-right",
         autoClose: 3000,
-      });
+      })
     }
-  };
+  }
 
   // Função para renderizar controles de paginação
   const renderPagination = (pagination, setPagination) => (
@@ -397,11 +448,11 @@ function UserTable() {
       <button
         onClick={() => {
           if (pagination.currentPage > 1) {
-            const newPage = pagination.currentPage - 1;
-            setPagination((prev) => ({ ...prev, currentPage: newPage }));
-            if (activeTable === "geral") fetchGeneralData(newPage);
-            else if (activeTable === "saida") fetchSpecificData(newPage);
-            else if (activeTable === "entrada") fetchEntryData(newPage);
+            const newPage = pagination.currentPage - 1
+            setPagination((prev) => ({ ...prev, currentPage: newPage }))
+            if (activeTable === "geral") fetchGeneralData(newPage)
+            else if (activeTable === "saida") fetchSpecificData(newPage)
+            else if (activeTable === "entrada") fetchEntryData(newPage)
           }
         }}
         disabled={pagination.currentPage === 1}
@@ -419,11 +470,11 @@ function UserTable() {
       <button
         onClick={() => {
           if (pagination.currentPage < pagination.totalPages) {
-            const newPage = pagination.currentPage + 1;
-            setPagination((prev) => ({ ...prev, currentPage: newPage }));
-            if (activeTable === "geral") fetchGeneralData(newPage);
-            else if (activeTable === "saida") fetchSpecificData(newPage);
-            else if (activeTable === "entrada") fetchEntryData(newPage);
+            const newPage = pagination.currentPage + 1
+            setPagination((prev) => ({ ...prev, currentPage: newPage }))
+            if (activeTable === "geral") fetchGeneralData(newPage)
+            else if (activeTable === "saida") fetchSpecificData(newPage)
+            else if (activeTable === "entrada") fetchEntryData(newPage)
           }
         }}
         disabled={pagination.currentPage === pagination.totalPages}
@@ -436,9 +487,9 @@ function UserTable() {
         Próximo
       </button>
     </div>
-  );
+  )
 
-  // Renderizar a Tabela Geral (mantida como estava)
+  // Renderizar a Tabela Geral
   const renderGeneralTable = () => {
     return (
       <>
@@ -490,7 +541,7 @@ function UserTable() {
               ))
             ) : (
               <tr>
-                <td colSpan="10" className="p-4 text-center text-gray-500">
+                <td colSpan="9" className="p-4 text-center text-gray-500">
                   Nenhum registro encontrado.
                 </td>
               </tr>
@@ -499,8 +550,8 @@ function UserTable() {
         </table>
         {renderPagination(generalPagination, setGeneralPagination)}
       </>
-    );
-  };
+    )
+  }
 
   // Renderizar a Tabela Saída (atualizada)
   const renderSpecificTable = () => {
@@ -535,7 +586,11 @@ function UserTable() {
                     }
                   >
                     <span
-                      className={`${item.cnh_foto ? "cursor-pointer text-blue-500 border-b-2 border-blue-500" : ""}`}
+                      className={`${
+                        item.cnh_foto
+                          ? "cursor-pointer text-blue-500 border-b-2 border-blue-500"
+                          : ""
+                      }`}
                     >
                       {item.cnh_cliente}
                     </span>
@@ -547,23 +602,21 @@ function UserTable() {
                   <td className="p-3 truncate max-w-[150px]">
                     {item.observacao}
                   </td>
-                  <td
-                    className="p-3"
-                    onClick={
-                      item.termo_responsabilidade
-                        ? () => undefined
-                        : () =>
-                            qrCode(
-                              item.nome_cliente,
-                              formatDate(item.data_horario),
-                            )
-                    }
-                  >
+                  <td className="p-3">
                     <span
                       className={
                         item.termo_responsabilidade
-                          ? ""
+                          ? "cursor-pointer"
                           : "cursor-pointer text-blue-500 border-b-2 border-blue-500"
+                      }
+                      onClick={
+                        item.termo_responsabilidade
+                          ? () =>  getPdf(item.id_saida)
+                          : () =>
+                              qrCode(
+                                item.nome_cliente,
+                                formatDate(item.data_horario),
+                              )
                       }
                     >
                       <FaFileAlt
@@ -577,7 +630,7 @@ function UserTable() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="p-4 text-center text-gray-500">
+                <td colSpan="10" className="p-4 text-center text-gray-500">
                   Nenhum registro pendente encontrado.
                 </td>
               </tr>
@@ -586,8 +639,8 @@ function UserTable() {
         </table>
         {renderPagination(specificPagination, setSpecificPagination)}
       </>
-    );
-  };
+    )
+  }
 
   // Renderizar a Tabela Entrada (atualizada)
   const renderEntryTable = () => {
@@ -623,7 +676,11 @@ function UserTable() {
                     }
                   >
                     <span
-                      className={`${item.cnh_foto ? "cursor-pointer text-blue-500 border-b-2 border-blue-500" : ""}`}
+                      className={`${
+                        item.cnh_foto
+                          ? "cursor-pointer text-blue-500 border-b-2 border-blue-500"
+                          : ""
+                      }`}
                     >
                       {item.cnh_cliente}
                     </span>
@@ -636,23 +693,21 @@ function UserTable() {
                   <td className="p-3 truncate max-w-[150px]">
                     {item.observacao}
                   </td>
-                  <td
-                    className="p-3"
-                    onClick={
-                      item.termo_responsabilidade
-                        ? () => undefined
-                        : () =>
-                            qrCode(
-                              item.nome_cliente,
-                              formatDate(item.data_horario),
-                            )
-                    }
-                  >
+                  <td className="p-3">
                     <span
                       className={
                         item.termo_responsabilidade
-                          ? ""
+                          ? "cursor-pointer"
                           : "cursor-pointer text-blue-500 border-b-2 border-blue-500"
+                      }
+                      onClick={
+                        item.termo_responsabilidade
+                          ? () =>  getPdf(item.id_saida)
+                          : () =>
+                              qrCode(
+                                item.nome_cliente,
+                                formatDate(item.data_horario),
+                              )
                       }
                     >
                       <FaFileAlt
@@ -666,7 +721,7 @@ function UserTable() {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="p-4 text-center text-gray-500">
+                <td colSpan="11" className="p-4 text-center text-gray-500">
                   Nenhum registro com retorno encontrado.
                 </td>
               </tr>
@@ -675,11 +730,11 @@ function UserTable() {
         </table>
         {renderPagination(entryPagination, setEntryPagination)}
       </>
-    );
-  };
+    )
+  }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="max-h-screen p-6">
       <ToastContainer />
       <div className="flex justify-center space-x-4 mb-6 border-b pb-2">
         <button
@@ -718,8 +773,9 @@ function UserTable() {
         <form
           id="search"
           onSubmit={(e) => {
-            e.preventDefault(); // Previne o comportamento padrão do formulário
-            searchData(searchTerm); // Chama a função de busca
+            e.preventDefault() // Previne o comportamento padrão do formulário
+            // Implementar a lógica de busca, se necessário
+            // Por exemplo, você pode chamar fetchGeneralData com searchTerm como parâmetro
           }}
         >
           <input
@@ -779,9 +835,15 @@ function UserTable() {
           onClick={closeEditModal}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
+            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+              onClick={closeEditModal}
+            >
+              &times;
+            </button>
             <h3 className="text-xl font-semibold mb-4 text-gray-800">
               Editar Registro
             </h3>
@@ -809,9 +871,9 @@ function UserTable() {
                   placeholder="Insira seu telefone"
                   value={selectedUser.telefone || ""}
                   onChange={(e) => {
-                    const numericValue = e.target.value.replace(/\D/g, "");
+                    const numericValue = e.target.value.replace(/\D/g, "")
                     if (numericValue.length <= 11) {
-                      handleEditChange(e);
+                      handleEditChange(e)
                     }
                   }}
                   required
@@ -829,9 +891,9 @@ function UserTable() {
                   placeholder="Insira seu CPF"
                   value={selectedUser.cpf || ""}
                   onChange={(e) => {
-                    const numericValue = e.target.value.replace(/\D/g, "");
+                    const numericValue = e.target.value.replace(/\D/g, "")
                     if (numericValue.length <= 11) {
-                      handleEditChange(e);
+                      handleEditChange(e)
                     }
                   }}
                   required
@@ -854,7 +916,7 @@ function UserTable() {
                     Selecione a origem
                   </option>
                   {origins.map((origin) => (
-                    <option key={origin.id} value={origin.descricao}>
+                    <option key={`origin_${origin.id}`} value={origin.descricao}>
                       {origin.descricao}
                     </option>
                   ))}
@@ -875,7 +937,7 @@ function UserTable() {
                     Selecione a intenção
                   </option>
                   {intentions.map((intention) => (
-                    <option key={intention.id} value={intention.descricao}>
+                    <option key={`intencao_${intention.id}`} value={intention.descricao}>
                       {intention.descricao}
                     </option>
                   ))}
@@ -936,24 +998,30 @@ function UserTable() {
           </div>
         </div>
       )}
+      {/* Modal de CNH */}
       {showCnhModal && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={closeModal}
+          onClick={closeCnhModal}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"
+            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+              onClick={closeCnhModal}
+            >
+              &times;
+            </button>
             <div className="bg-white p-4 rounded-lg">
               <img src={imageUrl} alt="Foto CNH" className="w-auto h-auto" />
             </div>
           </div>
         </div>
       )}
-      ;
     </div>
-  );
+  )
 }
 
-export default UserTable;
+export default UserTable

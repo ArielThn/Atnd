@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css-folder/forms.css';
 
@@ -87,7 +87,6 @@ function ClientForm({ isAdmin }) {
         throw new Error('Erro ao deletar origem');
       }
   
-      const data = await response.json();
       // Atualizar o estado removendo a origem deletada
       setOrigins((prevOrigins) => prevOrigins.filter((origin) => origin.id !== id));
     } catch (error) {
@@ -108,8 +107,6 @@ const deletarIntencaoCompra = async (id) => {
     if (!response.ok) {
       throw new Error('Erro ao deletar intenção de compra');
     }
-
-    const data = await response.json();
     // Atualizar o estado removendo a intenção de compra deletada
     setIntentions((prevIntencoes) => prevIntencoes.filter((intencao) => intencao.id !== id));
     toast.success('Intenção de compra deletada com sucesso!');
@@ -391,7 +388,7 @@ const deletarIntencaoCompra = async (id) => {
                 </label>
               ))}
             </div>
-              {isAdmin && (
+              {(
                 showOrigemInput ? (
                   <div ref={origemInputRef} class="flex items-center space-x-4 mt-4">
                     <input
@@ -490,7 +487,7 @@ const deletarIntencaoCompra = async (id) => {
                   placeholder="Digite o número de acompanhantes"
                   value={acompanhantes}
                   onChange={(e) => handleNumericInput(e, setAcompanhantes)}
-                  maxLength={2} // Limite de 2 caracteres, por exemplo
+                  maxLength={1} // Limite de 2 caracteres, por exemplo
                   class="p-2 border border-gray-300 rounded-md text-base text-gray-800 w-full"
                 />
               </div>

@@ -5,7 +5,14 @@ const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config/config');
 
 const registerUser = async (req, res) => {
-  const { email, password } = req.body;
+  console.log('Dados recebidos:', req.body); // Log para depuração
+
+  const { email, nome, password, empresa } = req.body; // Inclua 'nome' e 'empresa' se necessário
+
+  // Validação básica
+  if (!email || !nome || !password) {
+    return res.status(400).json({ message: 'Email, nome e senha são obrigatórios' });
+  }
 
   try {
     // Verifica se o usuário já existe
@@ -18,12 +25,18 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insere o usuário no banco de dados
-    await pool.query(
-      'INSERT INTO usuarios (email, senha) VALUES ($1, $2)',
-      [email, hashedPassword]
-    );
+    const insertQuery = `
+      INSERT INTO usuarios (email, nome, senha, empresa)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, email, nome, empresa, admin
+    `;
+    const values = [email, nome, hashedPassword, empresa || null]; // 'empresa' pode ser opcional
 
-    res.status(201).json({ message: 'Usuário registrado com sucesso!' });
+    const newUser = await pool.query(insertQuery, values);
+
+    console.log('Usuário inserido com sucesso:', newUser.rows[0]);
+
+    res.status(201).json({ message: 'Usuário registrado com sucesso!', user: newUser.rows[0] });
   } catch (error) {
     console.error('Erro ao registrar usuário:', error);
     res.status(500).json({ message: 'Erro ao registrar usuário' });

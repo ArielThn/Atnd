@@ -66,9 +66,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, registro, onUpdate }) =
       if (!response.ok) {
         throw new Error('Erro ao enviar os dados para o backend.');
       }
-  
-      const data = await response.json();
-  
+    
       // Exibe mensagem de sucesso
       toast.success('Entrada confirmada com sucesso!', {
         position: 'top-right',

@@ -52,7 +52,7 @@ function EntradaCarrosTabela() {
   }, [entryData]);
 
   return (
-    <div className="entrada-carros-tabela-container">
+    <div className="m-8 entrada-carros-tabela-container">
       <h2>Tabela de Entradas por Usuário e Carro</h2>
 
       {/* Renderiza a tabela caso dados estejam carregados */}

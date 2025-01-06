@@ -33,9 +33,7 @@ const RegistrosSaida = () => {
       const response = await fetch('http://192.168.20.96:5000/api/registros-saida', {
         credentials: 'include', // Garante envio de cookies
       });
-      if (!response.ok) {
-        throw new Error('Erro ao buscar os registros');
-      }
+
       const data = await response.json();
 
       // Define registros ou mensagem de vazio

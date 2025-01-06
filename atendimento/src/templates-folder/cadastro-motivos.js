@@ -115,7 +115,7 @@ const MotivosSaida = () => {
       toast.error('ID da empresa não encontrado. Verifique o token.');
       return;
     }
-
+    const upper = descricao.toUpperCase()
     try {
       const response = await fetch('http://192.168.20.96:5000/api/motivos-saida/cadastrar', {
         method: 'POST',
@@ -123,9 +123,8 @@ const MotivosSaida = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ descricao, id_empresa: idEmpresa }),
+        body: JSON.stringify({ descricao: upper, id_empresa: idEmpresa }),
       });
-
       if (response.ok) {
         setDescricao('');
         fetchMotivos();
@@ -146,7 +145,8 @@ const MotivosSaida = () => {
       toast.error('Todos os campos são obrigatórios.');
       return;
     }
-
+    const carroU = carro.toUpperCase()
+    const placaU = placa.toUpperCase()
     try {
       const response = await fetch('http://192.168.20.96:5000/api/carros/cadastrar', {
         method: 'POST',
@@ -155,8 +155,8 @@ const MotivosSaida = () => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          modelo: carro, // Use "carro" para o campo modelo
-          placa: placa,
+          modelo: carroU, // Use "carro" para o campo modelo
+          placa: placaU,
           id_empresa: idEmpresa,
         }),
       });
@@ -176,6 +176,7 @@ const MotivosSaida = () => {
     }
   };
 
+// eslint-disable-next-line
   useEffect(() => {
     decodeToken();
     fetchMotivos();

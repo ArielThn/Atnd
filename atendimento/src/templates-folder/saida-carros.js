@@ -197,7 +197,7 @@ const SaidaForm = () => {
               <input type="text" 
                   name="rgCliente"
                   placeholder="Digite o RG do Cliente"
-                  maxLength={50}
+                  maxLength={10}
                   value={formData.rgCliente}
                   onChange={handleChange}
                 />
@@ -210,7 +210,7 @@ const SaidaForm = () => {
               <input type="text" 
                   name="cpfCliente"
                   placeholder="Digite o CPF do Cliente"
-                  maxLength={50}
+                  maxLength={11}
                   value={formData.cpfCliente}
                   onChange={handleChange}
                 />
@@ -223,7 +223,7 @@ const SaidaForm = () => {
               <input type="text" 
                   name="cnhCliente"
                   placeholder="Digite o CNH do Cliente"
-                  maxLength={50}
+                  maxLength={9}
                   value={formData.cnhCliente}
                   onChange={handleChange}
                 />
@@ -331,12 +331,15 @@ const SaidaForm = () => {
         <div className="modal-overlay" onClick={handleQrModalClose}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>QRCode para Leitura</h3>
+            <div className="flex justify-center items-center">
+
             {dataHorario && (
               <QRCode 
-                value={qrUrl} 
+              value={qrUrl} 
               />
             )}
-            <button className="close-button" onClick={handleQrModalClose}>Fechar</button>
+            </div>
+            <button className="mt-8 border px-4 py-2 text-white bg-[#001e50] rounded-2xl" onClick={handleQrModalClose}>Fechar</button>
           </div>
         </div>
       )}
