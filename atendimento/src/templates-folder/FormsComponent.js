@@ -310,12 +310,36 @@ const deletarIntencaoCompra = async (id) => {
     const numericValue = value.replace(/[^0-9]/g, '');
     setValue(numericValue);
   };
+  const formatTelefone = (value) => {
+    // Remove tudo que não seja número
+    const numericValue = value.replace(/\D/g, '');
+    // Formata o valor conforme o padrão
+    const formattedValue = numericValue
+      .replace(/^(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .substring(0, 15); // Limite máximo de caracteres
+    return formattedValue;
+  };
+  const formatCpf = (value) => {
+    const numericValue = value.replace(/\D/g, ''); // Remover tudo o que não for número
+    if (numericValue.length <= 11) { // CPF
+      return numericValue
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else { // CNPJ
+      return numericValue
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    }
+  };
   
   return (
       <div class="flex justify-center items-center bg-white py-8 px-4">
         <div class="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full">
-          <h1 class="text-center text-[#001e50] mb-1 text-3xl font-bold">Cadastro de Cliente</h1>
-          <h2 class="text-center text-gray-600 mb-6 text-base font-normal">Trace o seu pedido</h2>
+          <h1 class="text-center text-[#001e50] mb-1 text-3xl font-bold pb-12">Cadastro de Cliente</h1>
     
           <form class="space-y-6" onSubmit={handleSubmit}>
             <div class="space-y-4 border-b-2 border-[#001e50] pb-6">
@@ -324,7 +348,7 @@ const deletarIntencaoCompra = async (id) => {
                 Nome *
                 <input
                   type="text"
-                  placeholder="Insira seu nome"
+                  placeholder="Insira o Nome do Cliente"
                   required
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
@@ -335,25 +359,25 @@ const deletarIntencaoCompra = async (id) => {
               <label class="flex flex-col">
                 Telefone *
                 <input
-                  type="text" // Usar 'text' para maior controle da entrada
-                  placeholder="Insira seu telefone"
+                  type="text"
+                  placeholder="Insira o Telefone do Cliente"
                   required
                   value={telefone}
-                  onChange={(e) => handleNumericInput(e, setTelefone)}
-                  maxLength={15} // Limite de caracteres
-                  class="p-3 border border-gray-300 rounded-md text-base text-gray-800"
+                  onChange={(e) => setTelefone(formatTelefone(e.target.value))}
+                  maxLength={15} // Limite correspondente à máscara
+                  className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
                 />
               </label>
-              <label class="flex flex-col">
+              <label className="flex flex-col">
                 CPF *
                 <input
-                  type="text" // Usar 'text' para maior controle da entrada
-                  placeholder="Insira seu CPF"
+                  type="text"
+                  placeholder="Insira o CPF do Cliente"
                   required
-                  value={cpf}
-                  onChange={(e) => handleNumericInput(e, setCpf)}
-                  maxLength={11} // Limite de caracteres
-                  class="p-3 border border-gray-300 rounded-md text-base text-gray-800"
+                  value={cpf} 
+                  onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  maxLength={18} // Limite de caracteres no formato "XXX.XXX.XXX-XX"
+                  className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
                 />
               </label>
             </div>
@@ -449,7 +473,7 @@ const deletarIntencaoCompra = async (id) => {
                     </label>
                   ))}
                 </div>
-                {isAdmin && (
+                { (
                   showIntencaoInput ? (
                     <div ref={intencaoInputRef} class="flex items-center space-x-4 mt-4">
                       <input
@@ -520,13 +544,13 @@ const deletarIntencaoCompra = async (id) => {
                             X
                           </span>
                         )}
-                        <span>{carro.descricao}</span> {/* Substituí origin.descricao por carro.descricao */}
+                        <span>{carro.descricao}</span>
                       </span>
                     </label>
                   ))
                 )}
 
-                {isAdmin && (
+                {(
                   showVeiculoInput ? (
                     <div ref={veiculoInputRef} class="flex items-center space-x-4 mt-4">
                       <input

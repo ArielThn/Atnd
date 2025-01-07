@@ -404,8 +404,8 @@ const fetchAnosMeses = async () => {
   }, [anoSelecionado, mesSelecionado])
 
   return (
-    <div className="p-8 w-full">
-      {/* Select para o Ano */}
+<div className="p-4 sm:p-6 md:p-8 flex-shrink">
+{/* Select para o Ano */}
       <div className="flex gap-8">
         <div className="pb-8">
           <select 
@@ -448,7 +448,6 @@ const fetchAnosMeses = async () => {
       {/* Cartões de Resumo */}
       <div className="summary-cards relative -z-10">
         <div className="card">
-          {/* Remover badge se companyName não for necessário */}
           <h3>Diário</h3>
           <p>{counts.dailyCount}</p>
         </div>

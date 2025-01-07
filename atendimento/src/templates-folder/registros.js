@@ -290,28 +290,18 @@ function UserTable() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, company])
 
-  // Filtrar dados com base no termo de pesquisa
   const filteredData = () => {
-    const data =
-      activeTable === "geral"
-        ? generalData
-        : activeTable === "saida"
-          ? specificData
-          : entryData
-
-    if (!searchTerm) return data
-
-    return data.filter((item) =>
-      Object.values(item).some(
-        (value) =>
-          value &&
-          value
-            .toString()
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-      )
-    )
+    let data = []
+    if (activeTable === "geral") {
+      data = Array.isArray(generalData) ? generalData : []
+    } else if (activeTable === "saida") {
+      data = Array.isArray(specificData) ? specificData : []
+    } else if (activeTable === "entrada") {
+      data = Array.isArray(entryData) ? entryData : []
+    }
+    return data
   }
+    
 
   const qrCode = async (nomeCliente, dataHorario) => {
     // Remove os espaços em excesso
@@ -398,6 +388,86 @@ const getPdf = async (id) => {
     const { name, value } = e.target
     setSelectedUser((prevUser) => ({ ...prevUser, [name]: value }))
   }
+
+  const formatCpf = (value) => {
+    const numericValue = value ? value.replace(/\D/g, '') : ''; // Verifica se 'value' é válido
+    if (numericValue.length <= 11) { // CPF
+      return numericValue
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else { // CNPJ
+      return numericValue
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    }
+  };
+
+  const unformatCpfCnpj = (value) => {
+    return value.replace(/\D/g, "");  // Remove tudo que não for número (tira pontos, hífens, etc.)
+  };
+  
+  const formatPhone = (value) => {
+    if (!value) return "Telefone inválido"; // Retorna uma mensagem padrão caso o valor seja null/undefined
+    const numericValue = value.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+    return numericValue
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4,5})(\d{4})$/, "$1-$2");
+  };
+
+  const fetchSearchData = async (search, table) => {
+    try {
+      const url = `http://192.168.20.96:5000/api/search?term=${encodeURIComponent(search)}&table=${encodeURIComponent(table)}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error('Falha ao buscar os dados');
+      }
+  
+      const data = await response.json();
+      console.log(data)
+      // Atualizar o estado da tabela ativa com os dados recebidos
+      if (table === "geral") {
+        setGeneralData(data || []);
+        setGeneralPagination({
+          currentPage: data.currentPage || 1,
+          totalPages: data.totalPages || 1,
+          totalRecords: data.totalRecords || 0,
+        });
+      } else if (table === "saida") {
+        setSpecificData(data || []);
+        setSpecificPagination({
+          currentPage: data.currentPage || 1,
+          totalPages: data.totalPages || 1,
+          totalRecords: data.totalRecords || 0,
+        });
+      } else if (table === "entrada") {
+        setEntryData(data || []);
+        setEntryPagination({
+          currentPage: data.currentPage || 1,
+          totalPages: data.totalPages || 1,
+          totalRecords: data.totalRecords || 0,
+        });
+      }
+  
+      toast.success("Dados carregados com sucesso!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar os dados:", error);
+      toast.error("Erro ao buscar os dados da busca.");
+    }
+  };
+  
+  
 
   const handleEditSubmit = async (e) => {
     e.preventDefault()
@@ -498,12 +568,13 @@ const getPdf = async (id) => {
             <tr>
               <th className="p-3 text-left">Cliente</th>
               <th className="p-3 text-left">Telefone</th>
-              <th className="p-3 text-left">CPF</th>
+              <th className="p-3 text-left">CPF/CNPJ</th>
               <th className="p-3 text-left">Origem</th>
               <th className="p-3 text-left">Intenção de Compra</th>
               <th className="p-3 text-left">Vendedor</th>
               <th className="p-3 text-left">Veículo de Interesse</th>
               <th className="p-3 text-left">Data</th>
+              <th className="p-3 text-left">Acompanhantes</th>
               <th className="p-3 text-left">Ações</th>
             </tr>
           </thead>
@@ -512,13 +583,14 @@ const getPdf = async (id) => {
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
                   <td className="p-3">{item.nome}</td>
-                  <td className="p-3">{item.telefone}</td>
-                  <td className="p-3">{item.cpf}</td>
+                  <td className="p-3">{formatPhone(item.telefone)}</td>
+                  <td className="p-3">{formatCpf(item.cpf)}</td>
                   <td className="p-3">{item.origem}</td>
                   <td className="p-3">{item.intencao_compra}</td>
                   <td className="p-3">{item.vendedor}</td>
                   <td className="p-3">{item.veiculo_interesse}</td>
                   <td className="p-3">{formatDate(item.data_cadastro)}</td>
+                  <td className="p-3">{item.quantidade_acompanhantes}</td>
                   <td className="p-3 flex space-x-2">
                     <FaEdit
                       color="blue"
@@ -562,7 +634,7 @@ const getPdf = async (id) => {
             <tr>
               <th className="p-3 text-left">Cliente</th>
               <th className="p-3 text-left">RG</th>
-              <th className="p-3 text-left">CPF</th>
+              <th className="p-3 text-left">CPF/CNPJ</th>
               <th className="p-3 text-left">CNH</th>
               <th className="p-3 text-left">Vendedor</th>
               <th className="p-3 text-left">Data e Horário</th>
@@ -578,7 +650,7 @@ const getPdf = async (id) => {
                 <tr key={index} className="hover:bg-gray-100">
                   <td className="p-3">{item.nome_cliente}</td>
                   <td className="p-3">{item.rg_cliente}</td>
-                  <td className="p-3">{item.cpf_cliente}</td>
+                  <td className="p-3">{formatCpf(item.cpf_cliente)}</td>
                   <td
                     className={`p-3`}
                     onClick={
@@ -642,6 +714,8 @@ const getPdf = async (id) => {
     )
   }
 
+  
+
   // Renderizar a Tabela Entrada (atualizada)
   const renderEntryTable = () => {
     return (
@@ -651,7 +725,7 @@ const getPdf = async (id) => {
             <tr>
               <th className="p-3 text-left">Cliente</th>
               <th className="p-3 text-left">RG</th>
-              <th className="p-3 text-left">CPF</th>
+              <th className="p-3 text-left">CPF/CNPJ</th>
               <th className="p-3 text-left">CNH</th>
               <th className="p-3 text-left">Vendedor</th>
               <th className="p-3 text-left">Data de Saída</th>
@@ -668,7 +742,7 @@ const getPdf = async (id) => {
                 <tr key={index} className="hover:bg-gray-100">
                   <td className="p-3">{item.nome_cliente}</td>
                   <td className="p-3">{item.rg_cliente}</td>
-                  <td className="p-3">{item.cpf_cliente}</td>
+                  <td className="p-3">{formatCpf(item.cpf_cliente)}</td>
                   <td
                     className={`p-3`}
                     onClick={
@@ -773,9 +847,8 @@ const getPdf = async (id) => {
         <form
           id="search"
           onSubmit={(e) => {
-            e.preventDefault() // Previne o comportamento padrão do formulário
-            // Implementar a lógica de busca, se necessário
-            // Por exemplo, você pode chamar fetchGeneralData com searchTerm como parâmetro
+            e.preventDefault()
+            fetchSearchData(searchTerm, activeTable)
           }}
         >
           <input
@@ -835,7 +908,7 @@ const getPdf = async (id) => {
           onClick={closeEditModal}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative"
+            className="bg-white p-6 rounded-lg shadow-lg  max-w-lg relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -864,43 +937,44 @@ const getPdf = async (id) => {
 
               {/* Telefone */}
               <label className="flex flex-col text-gray-700">
-                Telefone *
-                <input
-                  type="text"
-                  name="telefone"
-                  placeholder="Insira seu telefone"
-                  value={selectedUser.telefone || ""}
-                  onChange={(e) => {
-                    const numericValue = e.target.value.replace(/\D/g, "")
-                    if (numericValue.length <= 11) {
-                      handleEditChange(e)
-                    }
-                  }}
-                  required
-                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  maxLength={11}
-                />
-              </label>
+              Telefone *
+              <input
+                type="text"
+                name="telefone"
+                placeholder="Insira seu telefone"
+                value={formatPhone(selectedUser.telefone || "")} // Mostra formatado
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/\D/g, ""); // Remove formatação
+                  handleEditChange({ target: { name: "telefone", value: numericValue } }); // Salva sem formatação
+                }}
+                required
+                className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                maxLength={15} // Limite correspondente à máscara "(XX) XXXXX-XXXX"
+              />
+            </label>
 
               {/* CPF */}
               <label className="flex flex-col text-gray-700">
-                CPF *
-                <input
-                  type="text"
-                  name="cpf"
-                  placeholder="Insira seu CPF"
-                  value={selectedUser.cpf || ""}
-                  onChange={(e) => {
-                    const numericValue = e.target.value.replace(/\D/g, "")
-                    if (numericValue.length <= 11) {
-                      handleEditChange(e)
-                    }
-                  }}
-                  required
-                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  maxLength={11}
-                />
-              </label>
+              CPF/CNPJ *
+              <input
+                type="text"
+                name="cpfCnpj"
+                placeholder="Insira seu CPF ou CNPJ"
+                value={formatCpf(selectedUser.cpf) || ""} // Aplica a máscara para exibição
+                onChange={(e) => {
+                  const formattedValue = e.target.value;
+                  const unformattedValue = unformatCpfCnpj(formattedValue);  // Remove a máscara
+
+                  // Atualiza o estado com o CPF/CNPJ sem formatação
+                  handleEditChange({
+                    target: { name: "cpf", value: unformattedValue }
+                  });
+                }}
+                required
+                className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                maxLength={18}  // Limite do banco (apenas números, sem a máscara)
+              />
+            </label>
 
               {/* Origem */}
               <label className="flex flex-col text-gray-700">
@@ -957,8 +1031,8 @@ const getPdf = async (id) => {
                   <option value="" disabled>
                     Selecione um vendedor
                   </option>
-                  {vendedores.map((vendedor) => (
-                    <option key={vendedor.id} value={vendedor.nome_vendedor}>
+                  {vendedores.map((vendedor, i) => (
+                    <option key={(i)} value={vendedor.nome_vendedor}>
                       {vendedor.nome_vendedor}
                     </option>
                   ))}

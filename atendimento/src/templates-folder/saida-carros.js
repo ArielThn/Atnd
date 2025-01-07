@@ -167,6 +167,26 @@ const SaidaForm = () => {
   const qrUrl = `http://192.168.20.96:3000/${qrPath}`;
   
   console.log(qrUrl);
+  const formatCPF = (value) => {
+    if (!value) return "CPF inválido"; // Retorna uma mensagem padrão caso o valor seja null/undefined
+    const numericValue = value.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+    return numericValue
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{2})$/, "$1-$2");
+  };
+  
+  const formatRG = (value) => {
+    if (!value) return "RG inválido"; // Retorna uma mensagem padrão caso o valor seja null/undefined
+    const numericValue = value.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+    return numericValue.replace(/(\d{2})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  };
+  
+  const formatCNH = (value) => {
+    if (!value) return "CNH inválida"; // Retorna uma mensagem padrão caso o valor seja null/undefined
+    const numericValue = value.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+    return numericValue.replace(/(\d{3})(\d)/, "$1 $2").replace(/(\d{3})(\d)/, "$1 $2").replace(/(\d{3})(\d{1})$/, "$1 $2");
+  };
   return (
     <div className="form-card-container">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -190,45 +210,42 @@ const SaidaForm = () => {
                 />
             </div>
             <div className="pb-4">
-              {/* RG do Cliente*/}
-              <label>
-                  RG do Cliente
-              </label>
-              <input type="text" 
-                  name="rgCliente"
-                  placeholder="Digite o RG do Cliente"
-                  maxLength={10}
-                  value={formData.rgCliente}
-                  onChange={handleChange}
-                />
+              {/* CPF do Cliente */}
+              <label>CPF do Cliente</label>
+              <input
+                type="text"
+                name="cpfCliente"
+                placeholder="Digite o CPF do Cliente"
+                maxLength={14} // Formato com pontos e traços
+                value={formData.cpfCliente}
+                onChange={handleChange}
+              />
             </div>
             <div className="pb-4">
-              {/* CPF do Cliente*/}
-              <label>
-                  CPF do Cliente
-              </label>
-              <input type="text" 
-                  name="cpfCliente"
-                  placeholder="Digite o CPF do Cliente"
-                  maxLength={11}
-                  value={formData.cpfCliente}
-                  onChange={handleChange}
-                />
+              {/* RG do Cliente */}
+              <label>RG do Cliente</label>
+              <input
+                type="text"
+                name="rgCliente"
+                placeholder="Digite o RG do Cliente"
+                maxLength={12} // Formato com pontos e traços
+                value={formData.rgCliente}
+                onChange={handleChange}
+              />
             </div>
             <div className="pb-4">
-              {/* CNH do Cliente*/}
-              <label>
-                  CNH do Cliente
-              </label>
-              <input type="text" 
-                  name="cnhCliente"
-                  placeholder="Digite o CNH do Cliente"
-                  maxLength={9}
-                  value={formData.cnhCliente}
-                  onChange={handleChange}
-                />
+              {/* CNH do Cliente */}
+              <label>CNH do Cliente</label>
+              <input
+                type="text"
+                name="cnhCliente"
+                placeholder="Digite a CNH do Cliente"
+                maxLength={15} // Formato com espaços
+                value={formData.cnhCliente}
+                onChange={handleChange}
+              />
             </div>
-            </div>
+          </div>
           {/* Nome do Vendedor */}
           <div className="form-section">
             <label>

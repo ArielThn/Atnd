@@ -29,6 +29,7 @@ const deletarCliente = require('./Routes/deletarCliente');
 const deletarCamposForm = require('./Routes/deleteRoutes');
 const qrCode = require('./Routes/saidaDocRoute')
 const imageRoute = require('./Routes/imageRoute.js')
+const fetchSearch = require('./Routes/fetchSearch.js')
 const { startScheduler } = require('./sheduler');
 const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 
@@ -69,6 +70,7 @@ try {
   app.use('/api', carrosRoutesCadastrar);
   app.use('/api', qrCode);
   app.use('/api', imageRoute);
+  app.use('/api', fetchSearch);
 
 } catch (error) {
   console.error('Erro ao configurar as rotas:', error.message);

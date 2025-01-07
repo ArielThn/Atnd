@@ -71,6 +71,9 @@ const MainApp = ({ onLogout, isAdmin }) => {
 
         {/* Tela de Registros de Entrada */}
         {activeComponent === 'entrada' && <RegistrosEntrada />}
+
+        {/* Adicionar Motivos */}
+        {activeComponent === 'adicionar-motivos' && <AdicionarMotivos />}
       </div>
 
       {/* Modal de Confirmação */}
@@ -82,8 +85,6 @@ const MainApp = ({ onLogout, isAdmin }) => {
         />
       )}
 
-      {/* Adicionar Motivos */}
-      {activeComponent === 'adicionar-motivos' && <AdicionarMotivos />}
     </div>
   );
 };

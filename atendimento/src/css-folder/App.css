@@ -15,10 +15,13 @@
   
 
   .content {
-    flex-grow: 1;
-    margin-left: 100px; 
-    padding: 20px;
+    display: flex;
     flex-direction: column;
+    width: calc(100vw - 100px); /* Compensa o margin-left */
+    min-height: 100vh;
+    flex-grow: 1;
+    margin-left: 100px;
+    padding: 0 0 0 20px;
   }
   
 
