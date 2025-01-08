@@ -28,12 +28,17 @@ const upload = multer({ storage });
 
 const verificarRegistrosPendentes = async (nome, data) => {
   try {
+    // Adiciona '%' ao nome para utilizar no LIKE
+    const nomeComLike = `${nome}%`;
+
     const query = `
       SELECT *
       FROM registrar_saida
-      WHERE nome_cliente = $1 AND data_horario = $2 AND (cnh_foto IS NULL OR cnh_foto = '') AND (termo_responsabilidade IS NULL OR termo_responsabilidade = '')
+      WHERE nome_cliente LIKE $1 AND data_horario = $2
+        AND (cnh_foto IS NULL OR cnh_foto = '')
+        AND (termo_responsabilidade IS NULL OR termo_responsabilidade = '')
     `;
-    const values = [nome, data];
+    const values = [nomeComLike, data];
     const result = await pool.query(query, values);
 
     return result.rows; // Retorna os registros pendentes
@@ -99,13 +104,18 @@ router.post('/registrar_docs', upload.fields([
 
     // Atualizando o banco de dados
     try {
+      const nomeComLike = `${nome}%`; // Adiciona % para uso no LIKE
+
       const query = `
         UPDATE registrar_saida
         SET termo_responsabilidade = $1, cnh_foto = $2
-        WHERE nome_cliente = $3 AND data_horario = $4 AND (termo_responsabilidade IS NULL OR termo_responsabilidade = '') AND (cnh_foto IS NULL OR cnh_foto = '')
+        WHERE nome_cliente ILIKE $3
+          AND data_horario = $4
+          AND (termo_responsabilidade IS NULL OR termo_responsabilidade = '')
+          AND (cnh_foto IS NULL OR cnh_foto = '')
         RETURNING *;
       `;
-      const values = [pdfFileName, cnhPhotoName, nome, data];
+      const values = [pdfFileName, cnhPhotoName, nomeComLike, data];
       const result = await pool.query(query, values);
 
       if (result.rowCount === 0) {

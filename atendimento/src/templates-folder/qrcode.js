@@ -193,7 +193,7 @@ function TermoResponsabilidadeAssinatura() {
 
     try {
       // Captura a div como canvas
-      const canvas = await html2canvas(printRef.current, { scale: 2 });
+      const canvas = await html2canvas(printRef.current, { scale: 1 });
       const imgData = canvas.toDataURL("image/png");
 
       // Cria o PDF

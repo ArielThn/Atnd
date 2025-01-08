@@ -8,6 +8,10 @@ import { FaEdit, FaTrash, FaFileAlt } from "react-icons/fa"
 function UserTable() {
   const [showCnhModal, setShowCnhModal] = useState(false)
   const [imageUrl, setImageUrl] = useState("")
+  const [usuarios, setUsuarios] = useState([]);
+  const [carros, setCarros] = useState([]);
+  const [mes, setMeses] = useState([]);
+  const [dataMatrix, setDataMatrix] = useState([]);
 
   // Estados para dados e paginação da Tabela Geral
   const [generalData, setGeneralData] = useState([])
@@ -32,6 +36,14 @@ function UserTable() {
     totalPages: 1,
     totalRecords: 0,
   })
+
+  // Estados para dados e paginação da Tabela de Saída por Usuarios
+  const [newTableData, setNewTableData] = useState([]);
+  const [newTablePagination, setNewTablePagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+  });
 
   // Estados para filtros e busca
   const [month, setMonth] = useState(0) // Valor padrão '0' para 'Todos os Meses'
@@ -205,6 +217,62 @@ function UserTable() {
     }
   }
 
+  const fetchNewTableData = async (page = 1) => {
+    try {
+      const response = await fetch('http://192.168.20.96:5000/api/historico-entrada', { credentials: 'include' });
+
+      if (!response.ok) throw new Error("Erro ao buscar dados.");
+  
+      const data = await response.json();
+      console.log(data)
+      setNewTableData(data.records || []);
+      setNewTablePagination({
+        currentPage: data.currentPage || 1,
+        totalPages: data.totalPages || 1,
+        totalRecords: data.totalRecords || 0,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados da Test Drive:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (newTableData.length > 0) {
+      // Criamos a lista de vendedores, carros e meses únicos a partir dos dados recebidos
+      const uniqueUsuarios = [...new Set(newTableData.map((item) => item.nome_vendedor))];
+      const uniqueCarros = [...new Set(newTableData.map((item) => item.carro))];
+      const uniqueMeses = [...new Set(newTableData.map((item) => {
+        const data = new Date(item.data_retorno);
+        return `${String(data.getMonth() + 1).padStart(2, "0")}/${data.getFullYear()}`;
+      }))];
+  
+      // Criamos a matriz de dados (vendedor/carros/mês)
+      const matrix = uniqueUsuarios.map((nome_vendedor) => {
+        return uniqueCarros.map((carro) => {
+          return uniqueMeses.map((mes) => {
+            const count = newTableData.filter((item) => {
+              const data = new Date(item.data_retorno);
+              const itemMes = `${String(data.getMonth() + 1).padStart(2, "0")}/${data.getFullYear()}`;
+              return (
+                item.nome_vendedor === nome_vendedor &&
+                item.carro === carro &&
+                itemMes === mes
+              );
+            }).length;
+            return count;
+          });
+        });
+      });
+  
+      // Atualizamos o estado com as listas e a matriz
+      setUsuarios(uniqueUsuarios);
+      setCarros(uniqueCarros);
+      setMeses(uniqueMeses);
+      setDataMatrix(matrix);
+    }
+  }, [newTableData]);
+  
+
   // Função de busca para as Tabelas Saída e Entrada (modificadas para usar os novos endpoints)
   const fetchSpecificData = async (page = 1) => {
     try {
@@ -272,23 +340,28 @@ function UserTable() {
       fetchSpecificData(specificPagination.currentPage)
     else if (activeTable === "entrada")
       fetchEntryData(entryPagination.currentPage)
+    else if (activeTable === "TestDrive")
+      fetchNewTableData(newTablePagination.currentPage); // Adicione esta linha
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTable, month, company])
+  }, [activeTable, month, company]);
 
   // Resetar página quando filtros mudam
   useEffect(() => {
     if (activeTable === "geral") {
-      setGeneralPagination((prev) => ({ ...prev, currentPage: 1 }))
-      fetchGeneralData(1)
+      setGeneralPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchGeneralData(1);
     } else if (activeTable === "saida") {
-      setSpecificPagination((prev) => ({ ...prev, currentPage: 1 }))
-      fetchSpecificData(1)
+      setSpecificPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchSpecificData(1);
     } else if (activeTable === "entrada") {
-      setEntryPagination((prev) => ({ ...prev, currentPage: 1 }))
-      fetchEntryData(1)
+      setEntryPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchEntryData(1);
+    } else if (activeTable === "TestDrive") {
+      setNewTablePagination((prev) => ({ ...prev, currentPage: 1 })); // Adicione esta linha
+      fetchNewTableData(1); // Adicione esta linha
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month, company])
+  }, [month, company]);
 
   const filteredData = () => {
     let data = []
@@ -298,6 +371,8 @@ function UserTable() {
       data = Array.isArray(specificData) ? specificData : []
     } else if (activeTable === "entrada") {
       data = Array.isArray(entryData) ? entryData : []
+    } else if (activeTable === "TestDrive") {
+      data = Array.isArray(newTableData) ? newTableData : []
     }
     return data
   }
@@ -807,6 +882,37 @@ const getPdf = async (id) => {
     )
   }
 
+  //
+  const renderNewTable = () => {
+    return (
+      <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead className="bg-[#001e50] text-white">
+          <tr>
+            <th className="p-3 text-left">Vendedor</th>
+            {carros.map((carro, index) => (
+              <th key={index} className="p-3 text-left">
+                {carro}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {usuarios.map((vendedor, rowIndex) => (
+            <tr key={rowIndex} className="hover:bg-gray-100">
+              <td className="p-3">{vendedor}</td>
+              {dataMatrix[rowIndex]?.map((count, colIndex) => (
+                <td key={colIndex} className="p-3">
+                  {count}
+                </td>
+              ))}
+              <td className="p-3">{vendedor}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
+
   return (
     <div className="max-h-screen p-6">
       <ToastContainer />
@@ -840,6 +946,16 @@ const getPdf = async (id) => {
           onClick={() => setActiveTable("entrada")}
         >
           Entrada
+        </button>
+        <button
+          className={`px-4 py-2 ${
+            activeTable === "TestDrive"
+              ? "text-blue-500 border-b-2 border-blue-500"
+              : "text-gray-600"
+          }`}
+          onClick={() => setActiveTable("TestDrive")}
+        >
+          Test Drive
         </button>
       </div>
       {/* Filtro de pesquisa e filtros adicionais */}
@@ -901,6 +1017,8 @@ const getPdf = async (id) => {
       {activeTable === "geral" && renderGeneralTable()}
       {activeTable === "saida" && renderSpecificTable()}
       {activeTable === "entrada" && renderEntryTable()}
+      {activeTable === "TestDrive" && renderNewTable()}
+
       {/* Modal de Edição */}
       {showEditModal && selectedUser && (
         <div
@@ -908,7 +1026,7 @@ const getPdf = async (id) => {
           onClick={closeEditModal}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-lg  max-w-lg relative"
+            className="bg-white p-6 rounded-lg shadow-lg max-w-lg relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1079,7 +1197,7 @@ const getPdf = async (id) => {
           onClick={closeCnhModal}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative"
+            className="bg-white p-6 rounded-lg shadow-lg max-w-lg relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button

@@ -159,6 +159,7 @@ const fetchAnosMeses = async () => {
       }
 
       const data = await response.json()
+      console.log(data)
 
       let carroLabels = []
       let carroQuantidades = []

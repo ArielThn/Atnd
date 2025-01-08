@@ -43,6 +43,8 @@ router.get('/graficos/carros/:ano/:mes', async (req, res) => {
       WHERE f.empresa = $1
         AND f.data_cadastro >= $2
         AND f.data_cadastro <= $3
+        AND f.veiculo_interesse IS NOT NULL
+        AND f.veiculo_interesse <> ''
       GROUP BY f.veiculo_interesse
       ORDER BY quantidade DESC;
     `;

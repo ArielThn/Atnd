@@ -4,6 +4,15 @@ const pool = require('../db');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config/config');
 
+// registrar no postman 
+// http://192.168.20.96:5000/api/auth/register
+// nome é insensitive 
+// {
+//   "email": "Admin@gmail.com",
+//   "nome": "Admin",
+//   "password": "123"
+// }
+
 const registerUser = async (req, res) => {
   console.log('Dados recebidos:', req.body); // Log para depuração
 
@@ -42,21 +51,26 @@ const registerUser = async (req, res) => {
     res.status(500).json({ message: 'Erro ao registrar usuário' });
   }
 };
+
+
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  let { nome, password } = req.body;
 
   try {
-    // Busca o usuário pelo email e traz o status de admin corretamente
+    // Remove espaços em branco antes e depois do nome
+    nome = nome.trim();
+
+    // Busca o usuário pelo nome (case insensitive) e traz o status de admin corretamente
     const userQuery = `
       SELECT id, email, senha, nome, empresa, admin AS isAdmin
       FROM usuarios
-      WHERE email = $1
+      WHERE LOWER(nome) = LOWER($1)
     `;
-    const userResult = await pool.query(userQuery, [email]);
+    const userResult = await pool.query(userQuery, [nome]);
 
     // Verifica se o usuário existe
     if (userResult.rows.length === 0) {
-      return res.status(400).json({ message: 'Email ou senha inválidos' });
+      return res.status(400).json({ message: 'nome ou senha inválidos' });
     }
 
     const user = userResult.rows[0];
@@ -64,7 +78,7 @@ const loginUser = async (req, res) => {
     // Verifica se a senha está correta
     const validPassword = await bcrypt.compare(password, user.senha);
     if (!validPassword) {
-      return res.status(400).json({ message: 'Email ou senha inválidos' });
+      return res.status(400).json({ message: 'nome ou senha inválidos' });
     }
 
     // Cria o payload do token incluindo isAdmin
@@ -73,14 +87,14 @@ const loginUser = async (req, res) => {
       email: user.email,
       nome: user.nome,
       empresa: user.empresa,
-      isAdmin: user.isadmin, // Certifique-se de que `isAdmin` está sendo acessado corretamente
+      isAdmin: user.isadmin,
     };
 
     // Gera o token JWT
     const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
 
     // Configura o token como cookie
-    res.cookie('token', token, { // Aqui a variável corrigida é usada
+    res.cookie('token', token, {
       httpOnly: false, // Permite que o frontend acesse o cookie
       secure: false,   // Use true em produção com HTTPS
       sameSite: 'Lax', // Permite envio apenas para requisições do mesmo site

@@ -658,10 +658,6 @@ video {
   margin-top: 2rem;
 }
 
-.mr-8 {
-  margin-right: 2rem;
-}
-
 .block {
   display: block;
 }
@@ -700,10 +696,6 @@ video {
 
 .h-full {
   height: 100%;
-}
-
-.h-fit {
-  height: fit-content;
 }
 
 .max-h-screen {
@@ -748,10 +740,6 @@ video {
 
 .w-auto {
   width: auto;
-}
-
-.w-fit {
-  width: fit-content;
 }
 
 .w-full {
@@ -1103,10 +1091,6 @@ video {
 
 .pl-2 {
   padding-left: 0.5rem;
-}
-
-.pr-8 {
-  padding-right: 2rem;
 }
 
 .pt-16 {

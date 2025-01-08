@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import logo from '../assets/images/logo-removebg-preview.png';
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
+  const [nome, setNome] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -18,7 +18,7 @@ const Login = ({ onLogin }) => {
           'Content-Type': 'application/json',
         },
         credentials: 'include', // Enviar cookies
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ nome, password }),
       });
 
       const data = await response.json();
@@ -42,11 +42,11 @@ const Login = ({ onLogin }) => {
             <h1 className="text-4xl font-bold mb-4">Atendimento</h1>
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
             <input
-              id="email"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="nome"
+              type="nome"
+              placeholder="nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
               className="w-full bg-gray-200 p-3 rounded-md focus:outline-none"
               required
             />

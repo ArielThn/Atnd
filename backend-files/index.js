@@ -36,7 +36,9 @@ const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 const app = express();
 const port = process.env.PORT || 5000;
 
-const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://192.168.20.96:3000'];
+// const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://192.168.20.96:3000'];
+const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://localhost:3000'];
+
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
@@ -99,8 +101,11 @@ try {
 } catch (error) {
   console.error('Erro ao executar a sincronização inicial de usuários:', error.message);
 }
-const host = '0.0.0.0';
+// const host = '0.0.0.0';
 
-app.listen(port, host, () => {
-  console.log(`Servidor rodando em http://${host}:${port}`);
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
 });
+// app.listen(port, host, () => {
+//   console.log(`Servidor rodando em http://${host}:${port}`);
+// });
