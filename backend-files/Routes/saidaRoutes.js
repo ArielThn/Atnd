@@ -66,13 +66,23 @@ router.post('/registrar-saida', async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    res.status(201).json({ message: 'Saída registrada com sucesso!', data: result.rows[0] });
+    // Agora, atualiza o status do carro para FALSE (não disponível)
+    const updateStatusQuery = `
+      UPDATE carros
+      SET status_disponibilidade = FALSE
+      WHERE id_carro = $1;
+    `;
+    await pool.query(updateStatusQuery, [id_carro]);
+
+    // Retorna a resposta com sucesso
+    res.status(201).json({ message: 'Saída registrada com sucesso e status do carro atualizado!', data: result.rows[0] });
 
   } catch (err) {
     console.error('Erro ao registrar saída:', err.message || err);
     res.status(500).json({ error: 'Erro ao registrar saída. Detalhe: ' + err.message });
   }
 });
+
 
 
 router.post('/registrar-saida-doc', async (req, res) => {

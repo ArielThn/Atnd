@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react"
-import { Bar, Doughnut } from "react-chartjs-2"
+import { Bar, Doughnut, Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
   ArcElement,
+  LineElement, // Import the LineElement
 } from "chart.js"
 import "../css-folder/grafico.css"
 import ChartDataLabels from "chartjs-plugin-datalabels"
@@ -18,10 +20,12 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
   ArcElement,
+  LineElement, // Register the LineElement
   ChartDataLabels
 )
 
@@ -545,42 +549,42 @@ const fetchAnosMeses = async () => {
         </div>
       </div>
 
-      {/* Gráfico de Barras */}
-      <div className="chart-card bar-chart limited-height">
-        <h4>Resultados</h4>
-        {barData ? (
-          <Bar
-            data={barData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: "top",
-                  labels: { color: "#333" },
-                },
-                datalabels: {
-                  color: "#333",
-                  anchor: "end",
-                  align: "top",
-                  font: { weight: "bold" },
-                  formatter: (value) => value,
-                },
-              },
-              scales: {
-                x: { grid: { display: false }, ticks: { color: "#666" } },
-                y: {
-                  beginAtZero: true,
-                  grid: { color: "rgba(0, 0, 0, 0.05)" },
-                  ticks: { color: "#666" },
-                },
-              },
-            }}
-          />
-        ) : loading.barData ? (
-          <p>Carregando gráfico de barras...</p>
-        ) : null}
-      </div>
+      {/* Gráfico de Linhas */}
+<div className="chart-card line-chart limited-height">
+  <h4>Resultados</h4>
+  {barData ? ( // Use "lineData" ao invés de "barData"
+    <Line
+      data={barData}  // Alterei para lineData
+      options={{
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "top",
+            labels: { color: "#333" },
+          },
+          datalabels: {
+            color: "#333",
+            anchor: "end",
+            align: "top",
+            font: { weight: "bold" },
+            formatter: (value) => value,
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#666" } },
+          y: {
+            beginAtZero: true,
+            grid: { color: "rgba(0, 0, 0, 0.05)" },
+            ticks: { color: "#666" },
+          },
+        },
+      }}
+    />
+  ) : loading.barData ? ( // Verifique o status de "lineData"
+    <p>Carregando gráfico de linhas...</p>
+  ) : null}
+</div>
     </div>
   )
 }

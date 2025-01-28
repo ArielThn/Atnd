@@ -36,8 +36,8 @@ const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://192.168.20.96:3000'];
-const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://localhost:3000'];
+const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://192.168.20.96:3000'];
+// const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://localhost:3000'];
 
 app.use(cors({
   origin: allowedOrigins,

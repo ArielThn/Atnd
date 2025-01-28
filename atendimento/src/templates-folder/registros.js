@@ -905,7 +905,7 @@ const getPdf = async (id) => {
                   {count}
                 </td>
               ))}
-              <td className="p-3">{vendedor}</td>
+              <td className="p-3"></td>
             </tr>
           ))}
         </tbody>

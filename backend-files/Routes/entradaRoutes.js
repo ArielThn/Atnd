@@ -18,7 +18,6 @@ const verifyToken = (req, res, next) => {
     return res.status(401).json({ message: 'Token inválido ou expirado.' });
   }
 };
-
 // Endpoint para registrar entrada
 router.post('/registrar-entrada', verifyToken, async (req, res) => {
   const {
@@ -45,7 +44,16 @@ router.post('/registrar-entrada', verifyToken, async (req, res) => {
     RETURNING *;
   `;
 
+  const updateCarroQuery = `
+    UPDATE carros
+    SET status_disponibilidade = true
+    WHERE id_carro = $1
+      AND id_empresa = $2
+    RETURNING *;
+  `;
+
   try {
+    // Atualiza a saída
     const updateResult = await pool.query(updateQuery, [
       dataRetorno,
       id_saida,
@@ -57,16 +65,32 @@ router.post('/registrar-entrada', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Registro de saída não encontrado para atualização.' });
     }
 
-    res.status(200).json(updateResult.rows[0]);
+    // Atualiza o status do carro para disponível (true)
+    const updateCarroResult = await pool.query(updateCarroQuery, [
+      id_carro,
+      id_empresa,
+    ]);
+
+    if (updateCarroResult.rowCount === 0) {
+      return res.status(404).json({ message: 'Carro não encontrado para atualização de disponibilidade.' });
+    }
+
+    // Se ambos os updates forem bem-sucedidos, retornamos a resposta
+    res.status(200).json({
+      message: 'Entrada registrada e status do carro atualizado com sucesso!',
+      data_saida: updateResult.rows[0], // Dados da saída
+      data_carro: updateCarroResult.rows[0], // Dados do carro atualizado
+    });
   } catch (error) {
-    console.error('Erro ao registrar data de retorno:', error);
-    res.status(500).json({ message: 'Erro ao registrar data de retorno' });
+    console.error('Erro ao registrar entrada e atualizar carro:', error);
+    res.status(500).json({ message: 'Erro ao registrar entrada e atualizar o status do carro.' });
   }
 });
 
+
 // Rota para buscar registros de saída pendentes com filtros por mês e empresa com paginação
 router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
-  let { mes, empresa, page } = req.query;
+  let { mes, company, page } = req.query;
 
   // Parsing e validação do parâmetro 'page'
   page = parseInt(page, 10);
@@ -74,7 +98,6 @@ router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
     page = 1; // Valor padrão se 'page' não for válido
   }
 
-  const userEmpresa = req.user.empresa; // Pega a empresa do usuário do token
   const isAdmin = req.user.isAdmin; // Assume que o token contém a informação de permissão
   const limit = 15; // Limite de registros por página
   const offset = (page - 1) * limit; // Calcula o deslocamento baseado na página atual
@@ -105,12 +128,12 @@ router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
     // Filtro por empresa
     if (!isAdmin) {
       conditions.push(`id_empresa = $${values.length + 1}`);
-      values.push(userEmpresa);
-      countValues.push(userEmpresa);
-    } else if (empresa && empresa !== 'all') {
+      values.push(company);
+      countValues.push(company);
+    } else if (company && company !== 'all') {
       conditions.push(`id_empresa = $${values.length + 1}`);
-      values.push(empresa);
-      countValues.push(empresa);
+      values.push(company);
+      countValues.push(company);
     }
 
     // Filtro para garantir que o retorno é NULL (pendente)
@@ -150,8 +173,7 @@ router.get('/historico-saida-pendentes', verifyToken, async (req, res) => {
 
 // Rota para buscar registros de entrada com filtros por mês e empresa com paginação
 router.get('/historico-entrada', verifyToken, async (req, res) => {
-  let { mes, empresa, page } = req.query;
-
+  let { mes, company, page } = req.query;
   // Parsing e validação do parâmetro 'page'
   page = parseInt(page, 10);
   if (isNaN(page) || page < 1) {
@@ -192,10 +214,10 @@ router.get('/historico-entrada', verifyToken, async (req, res) => {
       conditions.push(`id_empresa = $${values.length + 1}`);
       values.push(userEmpresa);
       countValues.push(userEmpresa);
-    } else if (empresa && empresa !== 'all') {
+    } else if (company && company !== 'all') {
       conditions.push(`id_empresa = $${values.length + 1}`);
-      values.push(empresa);
-      countValues.push(empresa);
+      values.push(company);
+      countValues.push(company);
     }
 
     // Adiciona as condições às consultas

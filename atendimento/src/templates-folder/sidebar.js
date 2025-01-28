@@ -119,13 +119,6 @@ function Sidebar({ onLogout, onChangeComponent }) {
             <FaPlusCircle className="mr-2 text-[28px]" />
             {showText && <span>Adicionar Motivos</span>}
           </li>
-          <li
-            onClick={() => onChangeComponent('entrada')}
-            className="flex items-center justify-center w-full py-3 cursor-pointer text-white text-base font-medium transition-colors duration-200 hover:bg-[#00509e] rounded-lg"
-          >
-            <FaHistory className="mr-2 text-[28px]" />
-            {showText && <span>Registros de Entrada</span>}
-          </li>
 
         </ul>
       </nav>

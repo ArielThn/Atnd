@@ -25,14 +25,19 @@ const SaidaForm = () => {
   const [vendedores, setVendedores] = useState([]); // Lista de vendedores
   const [loading, setLoading] = useState(false);
   const [dataHorario, setDataHorario] = useState(""); // Novo estado para data_horario
-
+  
   const fetchCarros = async () => {
     try {
       const response = await fetch("http://192.168.20.96:5000/api/carros", {
         credentials: "include", // Inclui os cookies na requisição
       });
       const data = await response.json();
-      setCarros(data);
+      
+      // Filtra os carros com status_disponibilidade igual a true
+      const carrosDisponiveis = data.filter(carro => carro.status_disponibilidade === true);
+  
+      // Atualiza o estado com os carros filtrados
+      setCarros(carrosDisponiveis);
     } catch (err) {
       console.error("Erro ao buscar carros:", err);
       toast.error("Erro ao carregar a lista de carros.");
@@ -105,8 +110,7 @@ const SaidaForm = () => {
   
     try {
       const token = cookies.get("token");
-      if (!token)
-        throw new Error("Token não encontrado. Faça login novamente.");
+      if (!token) throw new Error("Token não encontrado. Faça login novamente.");
   
       jwtDecode(token); // Certifique-se de que o token está válido
   
@@ -146,6 +150,24 @@ const SaidaForm = () => {
   
       toast.success("Saída registrada com sucesso!");
       setQrModal(true);
+  
+      // Resetando os campos do formulário
+      setFormData({
+        nomeCliente: "",
+        rgCliente: "",
+        cpfCliente: "",
+        cnhCliente: "",
+        nomeVendedor: "",
+        observacao: "",
+        carro: "",
+        motivo: "",
+      });
+  
+      // Recarregando as listas de carros, motivos e vendedores
+      fetchCarros(); // Atualiza a lista de carros
+      fetchMotivos(); // Atualiza a lista de motivos
+      fetchVendedores(); // Atualiza a lista de vendedores
+  
     } catch (err) {
       console.error("Erro ao registrar a saída:", err);  // Logando o erro completo
       toast.error(err.message || "Erro ao registrar a saída. Tente novamente.");

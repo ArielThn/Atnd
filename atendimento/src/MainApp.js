@@ -7,7 +7,6 @@ import SaidaForm from './templates-folder/saida-carros';
 import ConfirmacaoModal from './templates-folder/ConfirmationModal';
 import RegistrosSaida from './templates-folder/RegistrosSaida'; // Registros específicos de saída
 import AdicionarMotivos from './templates-folder/cadastro-motivos'; // Importa o componente
-import RegistrosEntrada from './templates-folder/registros-entrada'; // Importa o componente RegistrosEntrada
 import './css-folder/MainApp.css';
 
 const MainApp = ({ onLogout, isAdmin }) => {
@@ -70,7 +69,6 @@ const MainApp = ({ onLogout, isAdmin }) => {
         )}
 
         {/* Tela de Registros de Entrada */}
-        {activeComponent === 'entrada' && <RegistrosEntrada />}
 
         {/* Adicionar Motivos */}
         {activeComponent === 'adicionar-motivos' && <AdicionarMotivos />}
