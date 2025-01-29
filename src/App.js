@@ -15,7 +15,7 @@ function App() {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        const response = await fetch('http://192.168.20.96:5000/api/auth/verify', {
+        const response = await fetch('http://192.168.20.96:3000/api/auth/verify', {
           method: 'GET',
           credentials: 'include',
         });
@@ -44,7 +44,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://192.168.20.96:5000/api/auth/logout', {
+      const response = await fetch('http://192.168.20.96:3000/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
@@ -60,6 +60,7 @@ function App() {
       console.error('Erro de rede:', err);
     }
   };
+
 
   return (
     <Router>
