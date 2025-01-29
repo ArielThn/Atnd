@@ -28,7 +28,7 @@ const SaidaForm = () => {
   
   const fetchCarros = async () => {
     try {
-      const response = await fetch("http://192.168.20.96:5000/api/carros", {
+      const response = await fetch("http://192.168.20.96:3000/api/carros", {
         credentials: "include", // Inclui os cookies na requisição
       });
       const data = await response.json();
@@ -46,7 +46,7 @@ const SaidaForm = () => {
 
   const fetchMotivos = async () => {
     try {
-      const response = await fetch("http://192.168.20.96:5000/api/motivos-saida", {
+      const response = await fetch("http://192.168.20.96:3000/api/motivos-saida", {
         credentials: "include",
       });
 
@@ -73,7 +73,7 @@ const SaidaForm = () => {
   // Função para buscar vendedores
   const fetchVendedores = async () => {
     try {
-      const response = await fetch("http://192.168.20.96:5000/TodosUsuarios", {
+      const response = await fetch("http://192.168.20.96:3000/TodosUsuarios", {
         credentials: "include",
       });
       const data = await response.json();
@@ -132,7 +132,7 @@ const SaidaForm = () => {
       };
   
       // Envia a requisição para o servidor
-      const response = await fetch("http://192.168.20.96:5000/api/registrar-saida", {
+      const response = await fetch("http://192.168.20.96:3000/api/registrar-saida", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

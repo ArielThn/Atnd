@@ -12,7 +12,7 @@ Modal.setAppElement("#root");
 
 // Obtenha a URL da API a partir das variáveis de ambiente
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:5000/api";
+  process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:3000/api";
 
 function TermoResponsabilidadeAssinatura() {
   const [dados, setDados] = useState(null);
@@ -134,11 +134,6 @@ function TermoResponsabilidadeAssinatura() {
     fetchDoc();
   }, [fetchDoc]);
 
-  useEffect(() => {
-    if (dados) {
-      console.log("Dados atualizados:", dados);
-    }
-  }, [dados]);
 
   // Função para salvar a assinatura do cliente
   const saveClientSignature = () => {
@@ -193,7 +188,7 @@ function TermoResponsabilidadeAssinatura() {
 
     try {
       // Captura a div como canvas
-      const canvas = await html2canvas(printRef.current, { scale: 1 });
+      const canvas = await html2canvas(printRef.current, { scale: 1.2 });
       const imgData = canvas.toDataURL("image/png");
 
       // Cria o PDF

@@ -61,10 +61,6 @@ function App() {
     }
   };
 
-  if (loading) {
-    return <div>Carregando...</div>;
-  }
-
   return (
     <Router>
       <Routes>

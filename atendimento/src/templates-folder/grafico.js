@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { Bar, Doughnut, Line } from "react-chartjs-2"
+import Cookies from 'universal-cookie';
+import { jwtDecode } from 'jwt-decode';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -53,7 +56,7 @@ function Dashboard() {
     monthlyCount: 0,
   })
   const [mesSelecionado, setMesSelecionado] = useState(null) // Inicializar como null
-
+  const [tabela, setTabela] = useState()
   // Lista de meses
   const meses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -87,49 +90,49 @@ function Dashboard() {
   const currentMonth = currentDate.getMonth() + 1 // getMonth() retorna 0-11
 
   // Base URL da API a partir de variáveis de ambiente
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:5000/api"
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:3000/api"
 
-// Função para buscar os dados de meses e anos
-const fetchAnosMeses = async () => {
-  setLoading(prev => ({ ...prev, anosMeses: true }))
-  try {
-    const response = await fetch(`${API_BASE_URL}/meses`, {
-      method: "GET",
-      credentials: "include", // Caso precise enviar cookies
-    })
+  // Função para buscar os dados de meses e anos
+  const fetchAnosMeses = async () => {
+    setLoading(prev => ({ ...prev, anosMeses: true }))
+    try {
+      const response = await fetch(`${API_BASE_URL}/meses`, {
+        method: "GET",
+        credentials: "include", // Caso precise enviar cookies
+      })
 
-    if (!response.ok) {
-      throw new Error("Erro ao buscar os anos e meses")
+      if (!response.ok) {
+        throw new Error("Erro ao buscar os anos e meses")
+      }
+
+      const data = await response.json()
+      setAnosMeses(data) // Guarda anos e meses no estado
+
+      // Extrair os anos disponíveis
+      const availableYears = [...new Set(data.map(item => item.ano))].sort((a, b) => b - a)
+
+      // Definir o ano padrão
+      const defaultYear = availableYears.includes(currentYear) ? currentYear : availableYears[0]
+      setAnoSelecionado(defaultYear)
+
+      // Filtrar os meses disponíveis para o ano selecionado
+      const availableMonths = data
+        .filter(item => item.ano === defaultYear)
+        .map(item => item.mes)
+      setMesesDisponiveis(availableMonths)
+
+      // Definir o mês padrão
+      const defaultMonth = availableMonths.includes(currentMonth) ? currentMonth : availableMonths[0]
+      setMesSelecionado(defaultMonth)
+
+      setErrors(prev => ({ ...prev, anosMeses: null }))
+    } catch (error) {
+      console.error("Erro ao buscar anos e meses:", error)
+      setErrors(prev => ({ ...prev, anosMeses: error.message }))
+    } finally {
+      setLoading(prev => ({ ...prev, anosMeses: false }))
     }
-
-    const data = await response.json()
-    setAnosMeses(data) // Guarda anos e meses no estado
-
-    // Extrair os anos disponíveis
-    const availableYears = [...new Set(data.map(item => item.ano))].sort((a, b) => b - a)
-
-    // Definir o ano padrão
-    const defaultYear = availableYears.includes(currentYear) ? currentYear : availableYears[0]
-    setAnoSelecionado(defaultYear)
-
-    // Filtrar os meses disponíveis para o ano selecionado
-    const availableMonths = data
-      .filter(item => item.ano === defaultYear)
-      .map(item => item.mes)
-    setMesesDisponiveis(availableMonths)
-
-    // Definir o mês padrão
-    const defaultMonth = availableMonths.includes(currentMonth) ? currentMonth : availableMonths[0]
-    setMesSelecionado(defaultMonth)
-
-    setErrors(prev => ({ ...prev, anosMeses: null }))
-  } catch (error) {
-    console.error("Erro ao buscar anos e meses:", error)
-    setErrors(prev => ({ ...prev, anosMeses: error.message }))
-  } finally {
-    setLoading(prev => ({ ...prev, anosMeses: false }))
   }
-}
 
   // Função para lidar com a mudança de seleção do ano
   const handleAnoChange = (e) => {
@@ -163,8 +166,6 @@ const fetchAnosMeses = async () => {
       }
 
       const data = await response.json()
-      console.log(data)
-
       let carroLabels = []
       let carroQuantidades = []
 
@@ -412,6 +413,7 @@ const fetchAnosMeses = async () => {
 <div className="p-4 sm:p-6 md:p-8 flex-shrink">
 {/* Select para o Ano */}
       <div className="flex gap-8">
+        
         <div className="pb-8">
           <select 
             value={anoSelecionado || ""} 
@@ -550,7 +552,7 @@ const fetchAnosMeses = async () => {
       </div>
 
       {/* Gráfico de Linhas */}
-<div className="chart-card line-chart limited-height">
+<div className="chart-card line-chart limited-height mt-12">
   <h4>Resultados</h4>
   {barData ? ( // Use "lineData" ao invés de "barData"
     <Line

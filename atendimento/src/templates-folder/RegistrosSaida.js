@@ -30,7 +30,7 @@ const RegistrosSaida = () => {
   const fetchRegistros = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://192.168.20.96:5000/api/registros-saida', {
+      const response = await fetch('http://192.168.20.96:3000/api/registros-saida', {
         credentials: 'include', // Garante envio de cookies
       });
 

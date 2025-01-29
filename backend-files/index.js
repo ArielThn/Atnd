@@ -16,6 +16,7 @@ const clientRoutes = require('../backend-files/Routes/Formulario');
 const vendedorRoutes = require('../backend-files/Routes/Vendedores');
 const formularioRoutes = require('../backend-files/Routes/formularioRoutes');
 const graficosRoutes = require('../backend-files/Routes/graficos');
+const graficosTestDrive = require('../backend-files/Routes/graficos_testdrive');
 const entradaRoutes = require('../backend-files/Routes/entradaRoutes');
 const registrarSaidaRoutes = require('../backend-files/Routes/registrarSaidaRoutes');
 const saidaRoutes = require('../backend-files/Routes/saidaRoutes');
@@ -30,6 +31,8 @@ const deletarCamposForm = require('./Routes/deleteRoutes');
 const qrCode = require('./Routes/saidaDocRoute')
 const imageRoute = require('./Routes/imageRoute.js')
 const fetchSearch = require('./Routes/fetchSearch.js')
+const dateOptions = require('./Routes/date-options.js')
+const fetchDados = require('./Routes/fetchDados.js')
 const { startScheduler } = require('./sheduler');
 const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 
@@ -61,6 +64,7 @@ try {
   app.use('/api', vendedorRoutes);
   app.use('/api', formularioRoutes);
   app.use('/api', graficosRoutes);
+  app.use('/api', graficosTestDrive);
   app.use('/api', registrarSaidaRoutes);
   app.use('/api', entradaRoutes);
   app.use('/api', saidaRoutes);
@@ -73,6 +77,8 @@ try {
   app.use('/api', qrCode);
   app.use('/api', imageRoute);
   app.use('/api', fetchSearch);
+  app.use('/api', dateOptions);
+  app.use('/api', fetchDados);
 
 } catch (error) {
   console.error('Erro ao configurar as rotas:', error.message);

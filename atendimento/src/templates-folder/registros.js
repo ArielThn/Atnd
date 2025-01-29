@@ -3,7 +3,9 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import "../css-folder/registros.css"
 import {jwtDecode} from "jwt-decode" // Importação corrigida
-import { FaEdit, FaTrash, FaFileAlt } from "react-icons/fa"
+import { FaEdit, FaRegTrashAlt , FaFileAlt } from "react-icons/fa"
+import { FaFileCsv } from "react-icons/fa6";
+
 
 function UserTable() {
   const [showCnhModal, setShowCnhModal] = useState(false)
@@ -12,6 +14,9 @@ function UserTable() {
   const [carros, setCarros] = useState([]);
   const [mes, setMeses] = useState([]);
   const [dataMatrix, setDataMatrix] = useState([]);
+  const [yearOptions, setYearOptions] = useState([]);
+  const [monthOptions, setMonthOptions] = useState([]);
+
 
   // Estados para dados e paginação da Tabela Geral
   const [generalData, setGeneralData] = useState([])
@@ -38,8 +43,8 @@ function UserTable() {
   })
 
   // Estados para dados e paginação da Tabela de Saída por Usuarios
-  const [newTableData, setNewTableData] = useState([]);
-  const [newTablePagination, setNewTablePagination] = useState({
+  const [testDriveData, setTestDriveData] = useState([]);
+  const [testDrivePagination, setTestDrivePagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalRecords: 0,
@@ -47,11 +52,12 @@ function UserTable() {
 
   // Estados para filtros e busca
   const [month, setMonth] = useState(0) // Valor padrão '0' para 'Todos os Meses'
+  const [year, setYear] = useState(0) // Valor padrão '0' para 'Todos os Anos'
   const [company, setCompany] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
   // Estado para tabela ativa
-  const [activeTable, setActiveTable] = useState("geral") // 'geral', 'saida', 'entrada'
+  const [activeTable, setActiveTable] = useState("geral")
 
   // Estados para dados auxiliares
   const [origins, setOrigins] = useState([])
@@ -99,7 +105,7 @@ function UserTable() {
   const deleteCliente = async (id) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:5000/api/deletar_cliente/${id}`,
+        `http://192.168.20.96:3000/api/deletar_cliente/${id}`,
         {
           method: "DELETE",
         },
@@ -131,7 +137,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchOrigins() {
       try {
-        const response = await fetch("http://192.168.20.96:5000/api/origem")
+        const response = await fetch("http://192.168.20.96:3000/api/origem")
         const data = await response.json()
         setOrigins(data)
       } catch (error) {
@@ -145,7 +151,7 @@ function UserTable() {
     async function fetchIntentions() {
       try {
         const response = await fetch(
-          "http://192.168.20.96:5000/api/intencao-compra",
+          "http://192.168.20.96:3000/api/intencao-compra",
         )
         const data = await response.json()
         setIntentions(data)
@@ -159,7 +165,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchVehicles() {
       try {
-        const response = await fetch("http://192.168.20.96:5000/api/veiculos")
+        const response = await fetch("http://192.168.20.96:3000/api/veiculos")
         const data = await response.json()
         setVehicles(data)
       } catch (error) {
@@ -173,7 +179,7 @@ function UserTable() {
     async function fetchVendedores() {
       try {
         const response = await fetch(
-          "http://192.168.20.96:5000/api/vendedores",
+          "http://192.168.20.96:3000/api/vendedores",
           { credentials: "include" },
         )
         const data = await response.json()
@@ -193,7 +199,7 @@ function UserTable() {
   const fetchGeneralData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:5000/api/formularios?month=${month}&company=${company}&page=${page}`,
+        `http://192.168.20.96:3000/api/formularios?year=${year}&month=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
       )
       if (!response.ok) throw new Error("Erro ao buscar dados.")
@@ -217,16 +223,16 @@ function UserTable() {
     }
   }
 
-  const fetchNewTableData = async (page = 1) => {
+  const fetchTestDriveData = async (page = 1) => {
     try {
-      const response = await fetch('http://192.168.20.96:5000/api/historico-entrada', { credentials: 'include' });
+      const response = await fetch(`http://192.168.20.96:3000/api/historico-entrada?ano=${year}&mes=${month}&company=${company}&page=${page}`, 
+      { credentials: 'include' });
 
       if (!response.ok) throw new Error("Erro ao buscar dados.");
   
       const data = await response.json();
-      console.log(data)
-      setNewTableData(data.records || []);
-      setNewTablePagination({
+      setTestDriveData(data.records || []);
+      setTestDrivePagination({
         currentPage: data.currentPage || 1,
         totalPages: data.totalPages || 1,
         totalRecords: data.totalRecords || 0,
@@ -237,11 +243,11 @@ function UserTable() {
   };
 
   useEffect(() => {
-    if (newTableData.length > 0) {
+    if (testDriveData.length > 0) {
       // Criamos a lista de vendedores, carros e meses únicos a partir dos dados recebidos
-      const uniqueUsuarios = [...new Set(newTableData.map((item) => item.nome_vendedor))];
-      const uniqueCarros = [...new Set(newTableData.map((item) => item.carro))];
-      const uniqueMeses = [...new Set(newTableData.map((item) => {
+      const uniqueUsuarios = [...new Set(testDriveData.map((item) => item.nome_vendedor))];
+      const uniqueCarros = [...new Set(testDriveData.map((item) => item.carro))];
+      const uniqueMeses = [...new Set(testDriveData.map((item) => {
         const data = new Date(item.data_retorno);
         return `${String(data.getMonth() + 1).padStart(2, "0")}/${data.getFullYear()}`;
       }))];
@@ -250,7 +256,7 @@ function UserTable() {
       const matrix = uniqueUsuarios.map((nome_vendedor) => {
         return uniqueCarros.map((carro) => {
           return uniqueMeses.map((mes) => {
-            const count = newTableData.filter((item) => {
+            const count = testDriveData.filter((item) => {
               const data = new Date(item.data_retorno);
               const itemMes = `${String(data.getMonth() + 1).padStart(2, "0")}/${data.getFullYear()}`;
               return (
@@ -270,14 +276,35 @@ function UserTable() {
       setMeses(uniqueMeses);
       setDataMatrix(matrix);
     }
-  }, [newTableData]);
+  }, [testDriveData]);
+
+  useEffect(() => {
+    const fetchDateOptions = async () => {
+      try {
+        const response = await fetch(`http://192.168.20.96:3000/api/date-options/${activeTable}`);
+        if (!response.ok) {
+          throw new Error("Erro ao buscar opções de data.");
+        }
+  
+        const data = await response.json();
+        const years = [...new Set(data.rows.map(item => item.year))];
+        const months = [...new Set(data.rows.map(item => item.month))];
+        setYearOptions(years);
+        setMonthOptions(months);
+      } catch (error) {
+        console.error("Erro ao buscar opções de data:", error);
+      }
+    };
+  
+    fetchDateOptions();
+  }, [activeTable]); // Atualiza sempre que a tabela ativa mudar
   
 
   // Função de busca para as Tabelas Saída e Entrada (modificadas para usar os novos endpoints)
   const fetchSpecificData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:5000/api/historico-saida-pendentes?mes=${month}&company=${company}&page=${page}`,
+        `http://192.168.20.96:3000/api/historico-saida-pendentes?ano=${year}&mes=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
       )
       if (!response.ok) throw new Error("Erro ao buscar dados.")
@@ -306,14 +333,12 @@ function UserTable() {
   const fetchEntryData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:5000/api/historico-entrada?mes=${month}&company=${company}&page=${page}`,
+        `http://192.168.20.96:3000/api/historico-entrada?ano=${year}&mes=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
       )
       if (!response.ok) throw new Error("Erro ao buscar dados.")
 
       const data = await response.json()
-
-      // Verificando se a resposta contém o formato correto
 
       // A resposta da API deve ter os campos `records`, `currentPage`, `totalPages`, `totalRecords`
       if (data.records && typeof data.currentPage === "number") {
@@ -341,9 +366,9 @@ function UserTable() {
     else if (activeTable === "entrada")
       fetchEntryData(entryPagination.currentPage)
     else if (activeTable === "TestDrive")
-      fetchNewTableData(newTablePagination.currentPage); // Adicione esta linha
+      fetchTestDriveData(testDrivePagination.currentPage); // Adicione esta linha
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTable, month, company]);
+  }, [activeTable,year, month, company]);
 
   // Resetar página quando filtros mudam
   useEffect(() => {
@@ -357,11 +382,11 @@ function UserTable() {
       setEntryPagination((prev) => ({ ...prev, currentPage: 1 }));
       fetchEntryData(1);
     } else if (activeTable === "TestDrive") {
-      setNewTablePagination((prev) => ({ ...prev, currentPage: 1 })); // Adicione esta linha
-      fetchNewTableData(1); // Adicione esta linha
+      setTestDrivePagination((prev) => ({ ...prev, currentPage: 1 })); // Adicione esta linha
+      fetchTestDriveData(1); // Adicione esta linha
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [month, company]);
+  }, [year, month, company]);
 
   const filteredData = () => {
     let data = []
@@ -372,7 +397,7 @@ function UserTable() {
     } else if (activeTable === "entrada") {
       data = Array.isArray(entryData) ? entryData : []
     } else if (activeTable === "TestDrive") {
-      data = Array.isArray(newTableData) ? newTableData : []
+      data = Array.isArray(testDriveData) ? testDriveData : []
     }
     return data
   }
@@ -386,15 +411,13 @@ function UserTable() {
     // Encode os dados para serem usados na URL
     const qrPath = `qrcode?nome=${encodeURIComponent(nomeClienteTrimmed)}&data=${encodeURIComponent(dataTrimmed)}`
     const qrUrl = `http://192.168.20.96:3000/${qrPath}`
-
-    console.log(qrUrl)
     // Implementar lógica adicional para exibir o QR code, se necessário
   }
 
   // Função para carregar a imagem e abrir o modal
   const getImage = async (id) => {
     try {
-      const imageUrl = `http://192.168.20.96:5000/api/foto_cnh/${id}`
+      const imageUrl = `http://192.168.20.96:3000/api/foto_cnh/${id}`
       // Atualiza a URL da imagem e abre o modal
       setImageUrl(imageUrl)
       setShowCnhModal(true)
@@ -402,7 +425,7 @@ function UserTable() {
       console.error("Erro ao carregar imagem:", error)
       toast.error("Não foi possível carregar a imagem da CNH.", {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 3000,
       })
     }
   }
@@ -411,7 +434,7 @@ function UserTable() {
 const getPdf = async (id) => {
   try {
     // Definindo a URL do PDF
-    const pdfUrl = `http://192.168.20.96:5000/api/termo_responsabilidade/${id}`;
+    const pdfUrl = `http://192.168.20.96:3000/api/termo_responsabilidade/${id}`;
     
     // Realizando uma requisição para verificar se o arquivo existe
     const response = await fetch(pdfUrl, { method: 'HEAD' });
@@ -435,7 +458,7 @@ const getPdf = async (id) => {
     // Ativa o toast de erro caso o PDF não possa ser carregado ou baixado
     toast.error("Não foi possível carregar o PDF do termo de responsabilidade.", {
       position: "top-right",
-      autoClose: 5000,
+      autoClose: 3000,
     });
   }
 };
@@ -492,63 +515,160 @@ const getPdf = async (id) => {
       .replace(/(\d{4,5})(\d{4})$/, "$1-$2");
   };
 
-  const fetchSearchData = async (search, table) => {
-    try {
-      const url = `http://192.168.20.96:5000/api/search?term=${encodeURIComponent(search)}&table=${encodeURIComponent(table)}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-  
-      if (!response.ok) {
-        throw new Error('Falha ao buscar os dados');
-      }
-  
-      const data = await response.json();
-      console.log(data)
-      // Atualizar o estado da tabela ativa com os dados recebidos
-      if (table === "geral") {
-        setGeneralData(data || []);
+const fetchSearchData = async (page = 1) => {
+  try {
+    // Construir a URL da API com os filtros e paginação
+    const url = `http://192.168.20.96:3000/api/search?term=${encodeURIComponent(searchTerm)}&table=${encodeURIComponent(activeTable)}&year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}&page=${page}`;    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar os dados: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Atualizar os estados com base na tabela ativa
+    switch (activeTable) {
+      case "geral":
+        setGeneralData(data.records || []);
         setGeneralPagination({
           currentPage: data.currentPage || 1,
           totalPages: data.totalPages || 1,
           totalRecords: data.totalRecords || 0,
         });
-      } else if (table === "saida") {
-        setSpecificData(data || []);
+        break;
+
+      case "saida":
+        setSpecificData(data.records || []);
         setSpecificPagination({
           currentPage: data.currentPage || 1,
           totalPages: data.totalPages || 1,
           totalRecords: data.totalRecords || 0,
         });
-      } else if (table === "entrada") {
-        setEntryData(data || []);
+        break;
+
+      case "entrada":
+        setEntryData(data.records || []);
         setEntryPagination({
           currentPage: data.currentPage || 1,
           totalPages: data.totalPages || 1,
           totalRecords: data.totalRecords || 0,
         });
+        break;
+
+      case "TestDrive":
+        setTestDriveData(data.records || []);
+        setTestDrivePagination({
+          currentPage: data.currentPage || 1,
+          totalPages: data.totalPages || 1,
+          totalRecords: data.totalRecords || 0,
+        });
+        break;
+
+      default:
+        throw new Error(`Tabela inválida: ${activeTable}`);
+    }
+
+    toast.success("Dados carregados com sucesso!", {
+      position: "top-right",
+      autoClose: 2000,
+    });
+  } catch (error) {
+    console.error("Erro ao buscar os dados:", error); // Log do erro
+    toast.error(`Erro ao buscar os dados: ${error.message || "Verifique os dados e tente novamente."}`, {
+      position: "top-right",
+      autoClose: 3000,
+    });
+  }
+};
+
+  const exportarParaCSV = async () => {
+    let dadosAtivos = [];
+    const baseUrl = "http://192.168.20.96:3000/api/dados";
+  
+    try {
+      if (year !== 0) {
+        // Realizar a requisição para buscar os dados da API
+        const url = `${baseUrl}?ano=${year}&mes=${month}&table=${activeTable}&company=${company}&search=${searchTerm}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.error("Erro ao buscar os dados da API:", response.statusText);
+          return;
+        }
+  
+        dadosAtivos = await response.json();
       }
   
-      toast.success("Dados carregados com sucesso!", {
-        position: "top-right",
-        autoClose: 2000,
+      if (!dadosAtivos || dadosAtivos.length === 0) {
+        console.error("Nenhum dado disponível para exportação.");
+        return;
+      }
+  
+      // Filtrar colunas que não devem ser incluídas no CSV
+      const colunasPermitidas = Object.keys(dadosAtivos[0]).filter(
+        coluna =>
+          !coluna.includes("id_") && // Excluir colunas que contenham "id_"
+          coluna !== "cnh_foto" &&   // Excluir coluna "cnh_foto"
+          coluna !== "termo_responsabilidade" // Excluir coluna "termo_responsabilidade"
+      );
+  
+      if (colunasPermitidas.length === 0) {
+        console.error("Nenhuma coluna permitida após o filtro.");
+        return;
+      }
+  
+      // Gerar cabeçalhos do CSV apenas com colunas permitidas
+      const cabecalhos = colunasPermitidas.join(";");
+  
+      // Mapear os dados excluindo as colunas filtradas
+      const linhas = dadosAtivos.map(item => {
+        return colunasPermitidas
+          .map(coluna => {
+            const valor = item[coluna];
+            // Encapsular em aspas duplas se necessário
+            const valorString = String(valor || "").replace(/"/g, '""'); // Escapar aspas duplas
+            return `"${valorString}"`;
+          })
+          .join(";");
       });
+  
+      // Conteúdo do CSV (cabeçalhos + linhas de dados)
+      const csvConteudo = [cabecalhos, ...linhas].join("\r\n");
+  
+      // Baixar o arquivo CSV
+      const blob = new Blob([csvConteudo], { type: "text/csv;charset=utf-8;" });
+  
+      // Criar URL para o Blob
+      const urlObject = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", urlObject);
+      link.setAttribute("download", `tabela_${activeTable}_filtrada.csv`);
+      
+      // Simular o clique para download
+      document.body.appendChild(link);  // Garantir que o link esteja no DOM
+      link.click();
+      document.body.removeChild(link);  // Remover o link do DOM após o clique
+  
+      // Limpar o objeto URL após o uso
+      URL.revokeObjectURL(urlObject);
+  
     } catch (error) {
-      console.error("Erro ao buscar os dados:", error);
-      toast.error("Erro ao buscar os dados da busca.");
+      console.error("Erro ao exportar para CSV:", error);
     }
   };
-  
   
 
   const handleEditSubmit = async (e) => {
     e.preventDefault()
     try {
       const response = await fetch(
-        `http://192.168.20.96:5000/api/formularios/${selectedUser.id}`,
+        `http://192.168.20.96:3000/api/formularios/${selectedUser.id}`,
         {
           // Usando id_saida
           method: "PUT",
@@ -593,7 +713,7 @@ const getPdf = async (id) => {
       <button
         onClick={() => {
           if (pagination.currentPage > 1) {
-            const newPage = pagination.currentPage - 1
+            const newPage = pagination.currentPage - 1;
             setPagination((prev) => ({ ...prev, currentPage: newPage }))
             if (activeTable === "geral") fetchGeneralData(newPage)
             else if (activeTable === "saida") fetchSpecificData(newPage)
@@ -632,7 +752,8 @@ const getPdf = async (id) => {
         Próximo
       </button>
     </div>
-  )
+  );
+  
 
   // Renderizar a Tabela Geral
   const renderGeneralTable = () => {
@@ -675,7 +796,7 @@ const getPdf = async (id) => {
                       size={24}
                     />
                     {decoded && decoded.isAdmin && (
-                      <FaTrash
+                      <FaRegTrashAlt 
                         color="red"
                         className="cursor-pointer"
                         title="Excluir"
@@ -716,7 +837,7 @@ const getPdf = async (id) => {
               <th className="p-3 text-left">Carro</th>
               <th className="p-3 text-left">Placa</th>
               <th className="p-3 text-left">Observação</th>
-              <th className="p-3 text-left">Documento</th>
+              <th className="p-3 text-left">Doc</th>
             </tr>
           </thead>
           <tbody>
@@ -724,7 +845,7 @@ const getPdf = async (id) => {
               filteredData().map((item, index) => (
                 <tr key={index} className="hover:bg-gray-100">
                   <td className="p-3">{item.nome_cliente}</td>
-                  <td className="p-3">{item.rg_cliente}</td>
+                  <td className="p-3">{(item.rg_cliente)}</td>
                   <td className="p-3">{formatCpf(item.cpf_cliente)}</td>
                   <td
                     className={`p-3`}
@@ -808,7 +929,7 @@ const getPdf = async (id) => {
               <th className="p-3 text-left">Carro</th>
               <th className="p-3 text-left">Placa</th>
               <th className="p-3 text-left">Observação</th>
-              <th className="p-3 text-left">Documento</th>
+              <th className="p-3 text-left">Doc</th>
             </tr>
           </thead>
           <tbody>
@@ -883,33 +1004,37 @@ const getPdf = async (id) => {
   }
 
   //
-  const renderNewTable = () => {
+  const renderTestDrive = () => {
     return (
-      <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
-        <thead className="bg-[#001e50] text-white">
-          <tr>
-            <th className="p-3 text-left">Vendedor</th>
-            {carros.map((carro, index) => (
-              <th key={index} className="p-3 text-left">
-                {carro}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((vendedor, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-100">
-              <td className="p-3">{vendedor}</td>
-              {dataMatrix[rowIndex]?.map((count, colIndex) => (
-                <td key={colIndex} className="p-3">
-                  {count}
-                </td>
+      <>
+        <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+          <thead className="bg-[#001e50] text-white">
+            <tr>
+              <th className="p-3 text-left">Vendedor</th>
+              {carros.map((carro, index) => (
+                <th key={index} className="p-3 text-left">
+                  {carro}
+                </th>
               ))}
-              <td className="p-3"></td>
+              <th className="p-3 text-left">Mês/Ano</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {usuarios.map((vendedor, rowIndex) => (
+              <tr key={rowIndex} className="hover:bg-gray-100">
+                <td className="p-3">{vendedor}</td>
+                {dataMatrix[rowIndex]?.map((count, colIndex) => (
+                  <td key={colIndex} className="p-3">
+                    {count}
+                  </td>
+                ))}
+                <td className="p-3">{mes}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {renderPagination(testDrivePagination, setTestDrivePagination)}
+      </>
     );
   };
 
@@ -983,21 +1108,42 @@ const getPdf = async (id) => {
         </form>
 
         <div className="search flex space-x-2">
+          {/* Seletor de Ano */}
+          <div>
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="p-2 border border-gray-300 rounded-md"
+            >
+              <option value={0}>Todos os anos</option>
+              {yearOptions.map((year, index) => (
+                <option key={index} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Seletor de Mês */}
-          <select
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))} // Atualiza o valor do mês
-            className="p-2 border border-gray-300 rounded-md"
-          >
-            <option key={0} value={0}>
-              Todos os Meses
-            </option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString("pt-BR", { month: "long" })}
-              </option>
-            ))}
-          </select>
+          <div>
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="p-2 border border-gray-300 rounded-md"
+            >
+              <option value={0}>Todos os meses</option>
+              {monthOptions.map((month, index) => (
+                <option key={index} value={month}>
+                  {new Date(0, month - 1).toLocaleString("pt-BR", { month: "long" })}
+                </option>
+              ))}
+            </select>
+          </div>
+            {year !== 0 &&(
+            <div className="flex items-center justify-center px-2 cursor-pointer border rounded"
+            onClick={exportarParaCSV}
+            >
+              <FaFileCsv className="text-green-400" size={24}/>
+            </div>
+            )}
 
           {/* Seletor de Empresa, visível para administradores */}
           {decoded?.isAdmin && (
@@ -1017,7 +1163,7 @@ const getPdf = async (id) => {
       {activeTable === "geral" && renderGeneralTable()}
       {activeTable === "saida" && renderSpecificTable()}
       {activeTable === "entrada" && renderEntryTable()}
-      {activeTable === "TestDrive" && renderNewTable()}
+      {activeTable === "TestDrive" && renderTestDrive()}
 
       {/* Modal de Edição */}
       {showEditModal && selectedUser && (

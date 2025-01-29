@@ -7,6 +7,7 @@ import SaidaForm from './templates-folder/saida-carros';
 import ConfirmacaoModal from './templates-folder/ConfirmationModal';
 import RegistrosSaida from './templates-folder/RegistrosSaida'; // Registros específicos de saída
 import AdicionarMotivos from './templates-folder/cadastro-motivos'; // Importa o componente
+import GraficoTestDrive from './templates-folder/grafico_testdrive';
 import './css-folder/MainApp.css';
 
 const MainApp = ({ onLogout, isAdmin }) => {
@@ -43,6 +44,8 @@ const MainApp = ({ onLogout, isAdmin }) => {
       <div className="content">
         {/* Gráficos */}
         {activeComponent === 'grafico' && <Grafico />}
+        {/* Gráficos */}
+        {activeComponent === 'grafico Test' && <GraficoTestDrive />}
 
         {/* Registros Gerais */}
         {activeComponent === 'registros' && (
