@@ -1,0 +1,13 @@
+/* src/styles/pdfStyles.css */
+.pdf-content {
+    width: 800px; /* largura fixa */
+    /* Outras propriedades de estilo fixas */
+  }
+  
+  /* Opcional: Impede estilos responsivos dentro do conteúdo PDF */
+  @media (max-width: 768px) {
+    .pdf-content {
+      width: 800px; /* mantém a largura fixa mesmo em telas menores */
+    }
+  }
+  

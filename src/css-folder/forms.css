@@ -1,0 +1,243 @@
+/* Centraliza o Card na Tela */
+.form-card-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+  }
+  
+  /* Estilo do Card */
+  .form-card {
+    width: 700px;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px; /* Arredondamento das bordas */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1); /* Sombra mais leve */
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Título principal */
+  .form-card h1 {
+    text-align: center;
+    color: #001e50;
+    margin-bottom: 5px;
+    font-size: 2.2em;
+    font-weight: bold;
+  }
+  
+  /* Subtítulo */
+  .form-card h2 {
+    text-align: center;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 1em;
+    font-weight: normal;
+  }
+  
+  /* Títulos das Seções */
+  .client-form .form-section h3 {
+    margin-bottom: 10px;
+    color: #001e50;
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+  
+  /* Estilo da linha azul para separar as seções */
+  .form-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #001e50; /* Linha azul mais intensa */
+  }
+  
+  /* Inputs e Labels */
+  .client-form label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    font-weight: normal; /* Reduz a intensidade do texto */
+    color: #333;
+  }
+  
+  .client-form label span {
+    margin-bottom: 5px;
+    font-weight: normal;
+    color: #666;
+  }
+  
+  .client-form input[type="text"],
+  .client-form input[type="number"],
+  .client-form input[type="email"],
+  .client-form input[type="date"],
+  .client-form select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    margin-top: 5px;
+    color: #333;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .client-form input[type="radio"],
+  .client-form input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2); 
+  }
+  
+  #Veiculos{
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    margin-top: 5px;
+    color: #333;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* Grupo de Radio e Checkbox */
+  .radio-group, .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 10px;
+  }
+  
+  /* Botão de Enviar */
+  .submit-button {
+    width: 100%;
+    padding: 15px;
+    background-color: #001e50;
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra para o botão */
+  }
+  
+  .submit-button:hover {
+    background-color: #19438d;
+  }
+  .add-button, .confirm-button {
+  background-color: #001e50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.add-button:hover {
+  background-color: #003d99;
+}
+
+.new-input {
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.new-input input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.confirm-button {
+  background-color: #28a745;
+}
+
+
+.form-card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.form-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.client-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.client-form input[type="text"],
+.client-form input[type="number"],
+.client-form select {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.client-form input[type="text"]:focus,
+.client-form input[type="number"]:focus,
+.client-form select:focus {
+  border-color: #007bff;
+}
+
+/* Botões de adicionar e salvar */
+.client-form button[type="button"],
+.submit-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+/* Botão Salvar */
+.client-form .submit-button {
+  background-color: #28a745;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.client-form button[type="button"]:hover,
+.client-form .submit-button:hover {
+  background-color: #0056b3;
+}
+
+.client-form .submit-button:hover {
+  background-color: #218838;
+}
+
+/* Estilo dos inputs adicionais */
+.client-form .extra-input {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.client-form .extra-input input {
+  flex: 1;
+  margin-right: 8px;
+}
+
+
+.Toastify__toast--error {
+  background-color: #dc3545;
+}

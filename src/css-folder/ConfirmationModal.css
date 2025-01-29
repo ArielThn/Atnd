@@ -1,0 +1,102 @@
+/* Fundo escuro ofuscado */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Fundo escuro com transparência */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Conteúdo do Modal */
+.modal-content {
+  background: #ffffff; /* Fundo branco */
+  padding: 25px;
+  border-radius: 10px; /* Borda suavemente arredondada */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra leve */
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+/* Título do Modal */
+.modal-content h2 {
+  font-size: 1.6em;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 15px;
+}
+
+/* Texto de Confirmação */
+.modal-content p {
+  font-size: 1em;
+  color: #555555;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+/* Informações do Registro */
+.modal-info p {
+  font-size: 1em;
+  color: #444444;
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+.modal-info p span {
+  font-weight: normal;
+  color: #666666;
+}
+
+/* Botões de Ação */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirmation-button,
+.cancelamento-button {
+  border: none;
+  border-radius: 6px;
+  padding: 10px 15px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 120px; /* Tamanho fixo para os botões */
+  text-align: center;
+}
+
+/* Botão Confirmar */
+.confirmation-button {
+  background: #28a745; /* Verde */
+  color: #ffffff;
+}
+
+.confirmation-button:hover {
+  background: #218838; /* Verde mais escuro no hover */
+}
+
+.confirmation-buttonactive {
+  transform: scale(0.98);
+}
+
+/* Botão Cancelar */
+.cancelamento-button{
+  background: #dc3545; /* Vermelho */
+  color: #ffffff;
+}
+
+.cancelamento-button:hover {
+  background: #c82333; /* Vermelho mais escuro no hover */
+}
+
+.cancelamento-buttonn:active {
+  transform: scale(0.98);
+}

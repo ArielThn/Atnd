@@ -1,0 +1,123 @@
+/* Sidebar container */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 120px; /* Initial width when closed */
+  height: 100vh;
+  background-color: #001e50;
+  color: white;
+  transition: width 0.3s ease; /* Smooth transition for expanding and collapsing */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  padding-bottom: 20px;
+}
+
+/* Expanded sidebar */
+.sidebar.open {
+  width: 200px; /* Width when opened */
+}
+
+/* Logo container */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 0;
+  flex-direction: column;
+  font-size: 20px;
+}
+
+.logo .username {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Navigation */
+.nav {
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1vw;
+  width: 80%; /* Centers the items */
+}
+
+.nav ul li {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers icon and text */
+  padding: 15px 0;
+  width: 100%;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s;
+}
+
+.nav ul li:hover {
+  background-color: #00509e;
+  border-radius: 8px;
+}
+
+.nav ul li svg {
+  margin-right: 10px;
+  font-size: 28px;
+}
+
+.nav ul li span {
+  font-size: 18px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* Logout button */
+.logout {
+  padding: 15px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80%;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s;
+}
+
+.logout:hover {
+  background-color: #00509e;
+  border-radius: 8px;
+}
+
+.logout svg {
+  margin-right: 10px;
+  font-size: 24px;
+}
+/* Adicione isso no seu arquivo CSS (sidebar.css) */
+.nav ul li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 0;
+  width: 100%;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.nav ul li:active {
+  transform: scale(0.95); /* Efeito de "pressionado" ao clicar */
+  background-color: #003d82; /* Cor ao clicar (opcional) */
+}
