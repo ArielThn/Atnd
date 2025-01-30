@@ -1,0 +1,130 @@
+-- Criação da tabela empresa
+CREATE TABLE IF NOT EXISTS public.empresa
+(
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
+);
+
+-- Criação da tabela carros
+CREATE TABLE IF NOT EXISTS public.carros
+(
+    id_carro SERIAL PRIMARY KEY,
+    modelo VARCHAR(100) NOT NULL,
+    placa VARCHAR(20) NOT NULL UNIQUE,
+    id_empresa INTEGER NOT NULL,
+    status_disponibilidade BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_empresa_carro FOREIGN KEY (id_empresa) REFERENCES public.empresa(id)
+);
+
+-- Criação da tabela formulario
+CREATE TABLE IF NOT EXISTS public.formulario
+(
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255),
+    telefone VARCHAR(15),
+    cpf VARCHAR(18),
+    origem VARCHAR(50),
+    intencao_compra VARCHAR(50),
+    vendedor VARCHAR(255),
+    vendedor_codigo VARCHAR(50),
+    quantidade_acompanhantes INTEGER,
+    veiculo_interesse VARCHAR(50),
+    empresa INTEGER,
+    data_cadastro TIMESTAMP,
+    CONSTRAINT fk_vendedor_codigo FOREIGN KEY (vendedor_codigo) REFERENCES public.vendedor(vendedor)
+);
+
+-- Criação da tabela intencao_compra
+CREATE TABLE IF NOT EXISTS public.intencao_compra
+(
+    id SERIAL PRIMARY KEY,
+    descricao VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Criação da tabela motivos_saida
+CREATE TABLE IF NOT EXISTS public.motivos_saida
+(
+    id_motivo SERIAL PRIMARY KEY,
+    descricao VARCHAR(255) NOT NULL,
+    id_empresa INTEGER NOT NULL,
+    CONSTRAINT fk_empresa_motivo FOREIGN KEY (id_empresa) REFERENCES public.empresa(id)
+);
+
+-- Criação da tabela origem
+CREATE TABLE IF NOT EXISTS public.origem
+(
+    id SERIAL PRIMARY KEY,
+    descricao VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Criação da tabela registrar_saida
+CREATE TABLE IF NOT EXISTS public.registrar_saida
+(
+    id_saida SERIAL PRIMARY KEY,
+    nome_cliente VARCHAR(100) NOT NULL,
+    rg_cliente VARCHAR(20) NOT NULL,
+    cpf_cliente VARCHAR(20) NOT NULL,
+    cnh_cliente VARCHAR(20) NOT NULL,
+    nome_vendedor VARCHAR(100) NOT NULL,
+    data_horario TIMESTAMP NOT NULL,
+    observacao TEXT,
+    carro VARCHAR(100) NOT NULL,
+    id_motivo INTEGER NOT NULL,
+    id_carro INTEGER NOT NULL,
+    id_empresa INTEGER NOT NULL,
+    placa VARCHAR(20),
+    data_retorno TIMESTAMP,
+    cnh_foto VARCHAR(255),
+    termo_responsabilidade VARCHAR(255)
+);
+
+-- Criação da tabela usuarios
+CREATE TABLE IF NOT EXISTS public.usuarios
+(
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    empresa INTEGER,
+    senha VARCHAR(255) NOT NULL,
+    admin BOOLEAN DEFAULT FALSE,
+    CONSTRAINT usuarios_empresa_check CHECK (empresa IN (1, 2))
+);
+
+-- Criação da tabela usuarios_geral
+CREATE TABLE IF NOT EXISTS public.usuarios_geral
+(
+    usuario VARCHAR(50) PRIMARY KEY,
+    nome VARCHAR(100),
+    ativo CHAR(1) NOT NULL DEFAULT 'S' CHECK (ativo IN ('S', 'N'))
+);
+
+-- Criação da tabela veiculo_interesse
+CREATE TABLE IF NOT EXISTS public.veiculo_interesse
+(
+    id SERIAL PRIMARY KEY,
+    descricao VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Criação da tabela vendedor
+CREATE TABLE IF NOT EXISTS public.vendedor
+(
+    empresa INTEGER,
+    vendedor VARCHAR(50) UNIQUE,
+    departamento INTEGER,
+    nome_vendedor VARCHAR(100),
+    usuario VARCHAR(50),
+    cpf VARCHAR(11),
+    ativo BOOLEAN,
+    gerente VARCHAR(50),
+    nome_gerente VARCHAR(100),
+    ddd_telefone VARCHAR(3),
+    telefone VARCHAR(15),
+    CONSTRAINT unique_empresa_vendedor UNIQUE (empresa, vendedor)
+);
+
+-- Criação da tabela vendedores_sincronizados
+CREATE TABLE IF NOT EXISTS public.vendedores_sincronizados
+(
+    vendedor VARCHAR(50) PRIMARY KEY,
+    sincronizado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
