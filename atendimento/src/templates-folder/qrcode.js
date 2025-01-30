@@ -9,10 +9,7 @@ import "../css-folder/pdfStyles.css";
 
 // Configure o root do modal para acessibilidade
 Modal.setAppElement("#root");
-
-// Obtenha a URL da API a partir das variáveis de ambiente
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:3000/api";
+const apiUrl = process.env.REACT_APP_API_URL;
 
 function TermoResponsabilidadeAssinatura() {
   const [dados, setDados] = useState(null);
@@ -53,7 +50,7 @@ function TermoResponsabilidadeAssinatura() {
     try {
       const formattedDate = dataParam;
 
-      const response = await fetch(`${API_BASE_URL}/docs`, {
+      const response = await fetch(`${apiUrl}/docs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -219,7 +216,7 @@ function TermoResponsabilidadeAssinatura() {
       formData.append("data", dataParam); // Certifique-se de que `dataParam` está definido
 
       // Envia para o backend
-      const response = await fetch(`${API_BASE_URL}/registrar_docs`, {
+      const response = await fetch(`${apiUrl}/registrar_docs`, {
         method: "POST",
         body: formData,
       });

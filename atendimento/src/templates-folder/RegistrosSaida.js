@@ -4,6 +4,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import ConfirmationModal from './ConfirmationModal';
 import 'react-toastify/dist/ReactToastify.css';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 // Função para formatar o horário
 const formatarHorario = (dataHora) => {
   if (!dataHora) return 'Horário inválido';
@@ -30,7 +32,7 @@ const RegistrosSaida = () => {
   const fetchRegistros = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://192.168.20.96:3000/api/registros-saida', {
+      const response = await fetch(`${apiUrl}/api/registros-saida`, {
         credentials: 'include', // Garante envio de cookies
       });
 

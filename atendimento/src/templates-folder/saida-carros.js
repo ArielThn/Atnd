@@ -8,6 +8,8 @@ import QRCode from "react-qr-code";
 
 const cookies = new Cookies();
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const SaidaForm = () => {
   const [formData, setFormData] = useState({
     nomeCliente: "",
@@ -28,7 +30,7 @@ const SaidaForm = () => {
   
   const fetchCarros = async () => {
     try {
-      const response = await fetch("http://192.168.20.96:3000/api/carros", {
+      const response = await fetch(`${apiUrl}/api/carros`, {
         credentials: "include", // Inclui os cookies na requisição
       });
       const data = await response.json();
@@ -46,7 +48,7 @@ const SaidaForm = () => {
 
   const fetchMotivos = async () => {
     try {
-      const response = await fetch("http://192.168.20.96:3000/api/motivos-saida", {
+      const response = await fetch(`${apiUrl}/api/motivos-saida`, {
         credentials: "include",
       });
 
@@ -73,7 +75,7 @@ const SaidaForm = () => {
   // Função para buscar vendedores
   const fetchVendedores = async () => {
     try {
-      const response = await fetch("http://192.168.20.96:3000/TodosUsuarios", {
+      const response = await fetch(`${apiUrl}/TodosUsuarios`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -132,7 +134,7 @@ const SaidaForm = () => {
       };
   
       // Envia a requisição para o servidor
-      const response = await fetch("http://192.168.20.96:3000/api/registrar-saida", {
+      const response = await fetch(`${apiUrl}/api/registrar-saida`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -186,7 +188,7 @@ const SaidaForm = () => {
   
   // Encode os dados quando passá-los como parâmetros
   const qrPath = `qrcode?nome=${encodeURIComponent(nomeCliente)}&data=${encodeURIComponent(data)}`;
-  const qrUrl = `http://192.168.20.96:3000/${qrPath}`;
+  const qrUrl = `${apiUrl}/${qrPath}`;
   
   console.log(qrUrl);
   const formatCPF = (value) => {

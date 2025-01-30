@@ -6,6 +6,7 @@ import {jwtDecode} from "jwt-decode" // Importação corrigida
 import { FaEdit, FaRegTrashAlt , FaFileAlt } from "react-icons/fa"
 import { FaFileCsv } from "react-icons/fa6";
 
+const apiUrl = process.env.REACT_APP_API_URL;
 
 function UserTable() {
   const [showCnhModal, setShowCnhModal] = useState(false)
@@ -105,7 +106,7 @@ function UserTable() {
   const deleteCliente = async (id) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:3000/api/deletar_cliente/${id}`,
+        `${apiUrl}/api/deletar_cliente/${id}`,
         {
           method: "DELETE",
         },
@@ -137,7 +138,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchOrigins() {
       try {
-        const response = await fetch("http://192.168.20.96:3000/api/origem")
+        const response = await fetch(`${apiUrl}/api/origem`)
         const data = await response.json()
         setOrigins(data)
       } catch (error) {
@@ -151,7 +152,7 @@ function UserTable() {
     async function fetchIntentions() {
       try {
         const response = await fetch(
-          "http://192.168.20.96:3000/api/intencao-compra",
+          `${apiUrl}/api/intencao-compra`,
         )
         const data = await response.json()
         setIntentions(data)
@@ -165,7 +166,7 @@ function UserTable() {
   useEffect(() => {
     async function fetchVehicles() {
       try {
-        const response = await fetch("http://192.168.20.96:3000/api/veiculos")
+        const response = await fetch(`${apiUrl}/api/veiculos`)
         const data = await response.json()
         setVehicles(data)
       } catch (error) {
@@ -179,7 +180,7 @@ function UserTable() {
     async function fetchVendedores() {
       try {
         const response = await fetch(
-          "http://192.168.20.96:3000/api/vendedores",
+          `${apiUrl}/api/vendedores`,
           { credentials: "include" },
         )
         const data = await response.json()
@@ -199,7 +200,7 @@ function UserTable() {
   const fetchGeneralData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:3000/api/formularios?year=${year}&month=${month}&company=${company}&page=${page}`,
+        `${apiUrl}/api/formularios?year=${year}&month=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
       )
       if (!response.ok) throw new Error("Erro ao buscar dados.")
@@ -225,7 +226,7 @@ function UserTable() {
 
   const fetchTestDriveData = async (page = 1) => {
     try {
-      const response = await fetch(`http://192.168.20.96:3000/api/historico-entrada?ano=${year}&mes=${month}&company=${company}&page=${page}`, 
+      const response = await fetch(`${apiUrl}/api/historico-entrada?ano=${year}&mes=${month}&company=${company}&page=${page}`, 
       { credentials: 'include' });
 
       if (!response.ok) throw new Error("Erro ao buscar dados.");
@@ -281,7 +282,7 @@ function UserTable() {
   useEffect(() => {
     const fetchDateOptions = async () => {
       try {
-        const response = await fetch(`http://192.168.20.96:3000/api/date-options/${activeTable}`);
+        const response = await fetch(`${apiUrl}/api/date-options/${activeTable}`);
         if (!response.ok) {
           throw new Error("Erro ao buscar opções de data.");
         }
@@ -304,7 +305,7 @@ function UserTable() {
   const fetchSpecificData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:3000/api/historico-saida-pendentes?ano=${year}&mes=${month}&company=${company}&page=${page}`,
+        `${apiUrl}/api/historico-saida-pendentes?ano=${year}&mes=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
       )
       if (!response.ok) throw new Error("Erro ao buscar dados.")
@@ -333,7 +334,7 @@ function UserTable() {
   const fetchEntryData = async (page = 1) => {
     try {
       const response = await fetch(
-        `http://192.168.20.96:3000/api/historico-entrada?ano=${year}&mes=${month}&company=${company}&page=${page}`,
+        `${apiUrl}/api/historico-entrada?ano=${year}&mes=${month}&company=${company}&page=${page}`,
         { credentials: "include" },
       )
       if (!response.ok) throw new Error("Erro ao buscar dados.")
@@ -410,14 +411,14 @@ function UserTable() {
 
     // Encode os dados para serem usados na URL
     const qrPath = `qrcode?nome=${encodeURIComponent(nomeClienteTrimmed)}&data=${encodeURIComponent(dataTrimmed)}`
-    const qrUrl = `http://192.168.20.96:3000/${qrPath}`
+    const qrUrl = `${apiUrl}/${qrPath}`
     // Implementar lógica adicional para exibir o QR code, se necessário
   }
 
   // Função para carregar a imagem e abrir o modal
   const getImage = async (id) => {
     try {
-      const imageUrl = `http://192.168.20.96:3000/api/foto_cnh/${id}`
+      const imageUrl = `${apiUrl}/api/foto_cnh/${id}`
       // Atualiza a URL da imagem e abre o modal
       setImageUrl(imageUrl)
       setShowCnhModal(true)
@@ -434,7 +435,7 @@ function UserTable() {
 const getPdf = async (id) => {
   try {
     // Definindo a URL do PDF
-    const pdfUrl = `http://192.168.20.96:3000/api/termo_responsabilidade/${id}`;
+    const pdfUrl = `${apiUrl}/api/termo_responsabilidade/${id}`;
     
     // Realizando uma requisição para verificar se o arquivo existe
     const response = await fetch(pdfUrl, { method: 'HEAD' });
@@ -518,7 +519,7 @@ const getPdf = async (id) => {
 const fetchSearchData = async (page = 1) => {
   try {
     // Construir a URL da API com os filtros e paginação
-    const url = `http://192.168.20.96:3000/api/search?term=${encodeURIComponent(searchTerm)}&table=${encodeURIComponent(activeTable)}&year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}&page=${page}`;    
+    const url = `${apiUrl}/api/search?term=${encodeURIComponent(searchTerm)}&table=${encodeURIComponent(activeTable)}&year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}&page=${page}`;    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -589,7 +590,7 @@ const fetchSearchData = async (page = 1) => {
 
   const exportarParaCSV = async () => {
     let dadosAtivos = [];
-    const baseUrl = "http://192.168.20.96:3000/api/dados";
+    const baseUrl = `${apiUrl}/api/dados`;
   
     try {
       if (year !== 0) {
@@ -668,7 +669,7 @@ const fetchSearchData = async (page = 1) => {
     e.preventDefault()
     try {
       const response = await fetch(
-        `http://192.168.20.96:3000/api/formularios/${selectedUser.id}`,
+        `${apiUrl}/api/formularios/${selectedUser.id}`,
         {
           // Usando id_saida
           method: "PUT",

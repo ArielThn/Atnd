@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../css-folder/ConfirmationModal.css';
 
 const cookies = new Cookies();
+const apiUrl = process.env.REACT_APP_API_URL;
 
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, registro, onUpdate }) => {
   if (!isOpen) return null; // Não renderiza o modal se não estiver aberto
@@ -54,7 +55,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, registro, onUpdate }) =
       };
   
       // Envia os dados para o backend
-      const response = await fetch('http://192.168.20.96:3000/api/registrar-entrada', {
+      const response = await fetch(`${apiUrl}/api/registrar-entrada`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

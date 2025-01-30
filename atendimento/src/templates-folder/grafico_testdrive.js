@@ -46,6 +46,9 @@ const barChartColors = {
   Ariel: "#001e50",
 }
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
+
 function Dashboard() {
   const [barData, setBarData] = useState(null)
   const [carrosData, setCarrosData] = useState({ labels: [], datasets: [] })
@@ -64,7 +67,7 @@ function Dashboard() {
     const currentMonth = currentDate.getMonth() + 1 // getMonth() retorna 0-11 
   
   // Base URL da API
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:3000/api"
+  const API_BASE_URL = process.env.REACT_APP_API_URL
 
 
   // Função para buscar os dados de meses e anos

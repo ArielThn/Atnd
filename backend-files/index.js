@@ -39,7 +39,7 @@ const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 const app = express();
 const port = process.env.PORT || 5000;
 
-const allowedOrigins = ['http://192.168.30.13:3000', 'http://192.168.20.96:3001'];
+const allowedOrigins = [process.env.allowed];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -71,7 +71,6 @@ try {
   app.use('/api', vendedorRoutes);
   app.use('/api', formularioRoutes);
   app.use('/api', graficosRoutes);
-  app.use('/api', graficosTestDrive);
   app.use('/api', registrarSaidaRoutes);
   app.use('/api', entradaRoutes);
   app.use('/api', saidaRoutes);

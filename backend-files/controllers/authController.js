@@ -97,12 +97,11 @@ const loginUser = async (req, res) => {
       path: '/',
       httpOnly: true,
       secure: false,  // Tente `false` se estiver rodando em `localhost`
-      sameSite: 'None', // Permite cookies entre subdomínios
+      sameSite: 'Lax', // Permite cookies entre subdomínios
     });
     
 
     res.status(200).json({ message: 'Login bem-sucedido' });
-    console.log(token)
   } catch (error) {
     console.error('Erro ao fazer login:', error);
     res.status(500).json({ message: 'Erro ao fazer login' });
@@ -119,7 +118,6 @@ const authenticate = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     req.user = decoded; // Decodifica e armazena id, nome, empresa no req.user
-    console.log(decoded)
     next();
   } catch (err) {
     res.status(403).json({ message: 'Token inválido ou expirado.' });

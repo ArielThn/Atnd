@@ -46,6 +46,9 @@ const barChartColors = {
   Ariel: "#001e50",
 }
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
+
 function Dashboard() {
   const [barData, setBarData] = useState(null)
   const [carrosData, setCarrosData] = useState({ labels: [], datasets: [] })
@@ -89,14 +92,12 @@ function Dashboard() {
   const currentYear = currentDate.getFullYear()
   const currentMonth = currentDate.getMonth() + 1 // getMonth() retorna 0-11
 
-  // Base URL da API a partir de variáveis de ambiente
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://192.168.20.96:3000/api"
 
   // Função para buscar os dados de meses e anos
   const fetchAnosMeses = async () => {
     setLoading(prev => ({ ...prev, anosMeses: true }))
     try {
-      const response = await fetch(`${API_BASE_URL}/meses`, {
+      const response = await fetch(`${apiUrl}/api/meses`, {
         method: "GET",
         credentials: "include", // Caso precise enviar cookies
       })
@@ -157,7 +158,7 @@ function Dashboard() {
     setLoading(prev => ({ ...prev, carrosData: true }))
     try {
       const response = await fetch(
-        `${API_BASE_URL}/graficos/carros/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado
+        `${apiUrl}/api/graficos/carros/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado
         { credentials: "include" }
       )
 
@@ -220,7 +221,7 @@ function Dashboard() {
     setLoading(prev => ({ ...prev, counts: true }))
     try {
       const response = await fetch(
-        `${API_BASE_URL}/graficos/contagens/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado
+        `${apiUrl}/api/graficos/contagens/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado
         { credentials: "include" }
       )
 
@@ -254,7 +255,7 @@ function Dashboard() {
     setLoading(prev => ({ ...prev, donutDataOrigem: true }))
     try {
       const response = await fetch(
-        `${API_BASE_URL}/graficos/origens/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado
+        `${apiUrl}/api/graficos/origens/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado
         { credentials: "include" }
       )
 
@@ -316,7 +317,7 @@ function Dashboard() {
     setLoading(prev => ({ ...prev, barData: true }))
     try {
       const response = await fetch(
-        `${API_BASE_URL}/graficos/empresa-diario/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado na URL
+        `${apiUrl}/api/graficos/empresa-diario/${Number(anoSelecionado)}/${Number(mesSelecionado)}`, // Usar mês selecionado na URL
         { credentials: "include" }
       )
 

@@ -6,6 +6,7 @@ const Login = ({ onLogin }) => {
   const [nome, setNome] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const apiUrl = process.env.API_URI;
 
   const handleLogin = async (event) => {
     event.preventDefault();

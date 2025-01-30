@@ -5,7 +5,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css-folder/cadastro-motivos.css';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const MotivosSaida = () => {
+  
   const [descricao, setDescricao] = useState('');
   const [motivos, setMotivos] = useState([]);
   const [idEmpresa, setIdEmpresa] = useState(null);
@@ -17,6 +20,7 @@ const MotivosSaida = () => {
   const [showCarros, setShowCarros] = useState(false); // Alternar exibição de Carros
 
   const cookies = new Cookies();
+
 
   const decodeToken = () => {
     const token = cookies.get('token');
@@ -34,7 +38,7 @@ const MotivosSaida = () => {
 
   const fetchMotivos = async () => {
     try {
-      const response = await fetch('http://192.168.20.96:3000/api/motivos-saida/listar', {
+      const response = await fetch(`${apiUrl}/api/motivos-saida/listar`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -51,7 +55,7 @@ const MotivosSaida = () => {
   // Função para buscar carros
   const fetchCarros = async () => {
     try {
-      const response = await fetch('http://192.168.20.96:3000/api/carros', {
+      const response = await fetch(`${apiUrl}/api/carros`, {
         credentials: 'include', // Inclui os cookies na requisição
       });
       const data = await response.json();
@@ -65,7 +69,7 @@ const MotivosSaida = () => {
   // Função para excluir o carro
   const deleteCarro = async (idCarro) => {
     try {
-      const response = await fetch(`http://192.168.20.96:3000/api/carro/${idCarro}`, {
+      const response = await fetch(`${apiUrl}/api/carro/${idCarro}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +93,7 @@ const MotivosSaida = () => {
 
   const deleteMotivo = async (idMotivo) => {
     try {
-      const response = await fetch(`http://192.168.20.96:3000/api/motivo/${idMotivo}`, {
+      const response = await fetch(`${apiUrl}/api/motivo/${idMotivo}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +121,7 @@ const MotivosSaida = () => {
     }
     const upper = descricao.toUpperCase()
     try {
-      const response = await fetch('http://192.168.20.96:3000/api/motivos-saida/cadastrar', {
+      const response = await fetch(`${apiUrl}/api/motivos-saida/cadastrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +152,7 @@ const MotivosSaida = () => {
     const carroU = carro.toUpperCase()
     const placaU = placa.toUpperCase()
     try {
-      const response = await fetch('http://192.168.20.96:3000/api/carros/cadastrar', {
+      const response = await fetch(`${apiUrl}/api/carros/cadastrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
