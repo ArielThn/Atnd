@@ -360,6 +360,4 @@ router.get('/meses', async (req, res) => {
   }
 });
 
-
-
 module.exports = router;

@@ -93,24 +93,21 @@ const loginUser = async (req, res) => {
     // Gera o token JWT
     const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
 
-    // Configura o token como cookie
     res.cookie('token', token, {
-      httpOnly: false, // Permite que o frontend acesse o cookie
-      secure: false,   // Use true em produção com HTTPS
-      sameSite: 'Lax', // Permite envio apenas para requisições do mesmo site
-      path: '/',       // Disponível em todas as rotas
+      path: '/',
+      httpOnly: true,
+      secure: false,  // Tente `false` se estiver rodando em `localhost`
+      sameSite: 'None', // Permite cookies entre subdomínios
     });
+    
 
     res.status(200).json({ message: 'Login bem-sucedido' });
+    console.log(token)
   } catch (error) {
     console.error('Erro ao fazer login:', error);
     res.status(500).json({ message: 'Erro ao fazer login' });
   }
 };
-
-
-
-
 
 const authenticate = (req, res, next) => {
   const token = req.cookies.token;
@@ -122,6 +119,7 @@ const authenticate = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     req.user = decoded; // Decodifica e armazena id, nome, empresa no req.user
+    console.log(decoded)
     next();
   } catch (err) {
     res.status(403).json({ message: 'Token inválido ou expirado.' });

@@ -39,13 +39,20 @@ const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 const app = express();
 const port = process.env.PORT || 5000;
 
-const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://192.168.20.96:3000'];
-// const allowedOrigins = [process.env.CLIENT_ORIGIN || 'http://localhost:3000'];
+const allowedOrigins = ['http://192.168.30.13:3000', 'http://192.168.20.96:3001'];
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
+  origin: (origin, callback) => {
+    // Permite a origem da requisição ou um domínio específico
+    if (allowedOrigins.includes(origin) || !origin) {  // !origin para permitir no caso de chamadas diretas do servidor
+      callback(null, true);
+    } else {
+      callback(new Error('CORS não permitido'), false);
+    }
+  },
+  credentials: true,  // Permite que os cookies sejam enviados
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -112,6 +119,3 @@ try {
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
-// app.listen(port, host, () => {
-//   console.log(`Servidor rodando em http://${host}:${port}`);
-// });
