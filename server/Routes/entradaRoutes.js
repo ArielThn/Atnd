@@ -10,7 +10,7 @@ const verifyToken = (req, res, next) => {
     return res.status(401).json({ message: 'Token não fornecido.' });
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
     req.user = decoded;
     next();
   } catch (error) {

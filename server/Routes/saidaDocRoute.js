@@ -52,11 +52,7 @@ const verificarRegistrosPendentes = async (nome, data) => {
 router.post('/docs', async (req, res) => {
   const { nome, data } = req.body;
 
-  console.log('Requisição para /docs recebida');
-  console.log('Body:', req.body);
-
   if (!nome || !data) {
-    console.log('Campos obrigatórios faltando em /docs');
     return res.status(400).json({ message: 'Os campos nome e data são obrigatórios.' });
   }
 
@@ -65,7 +61,6 @@ router.post('/docs', async (req, res) => {
     const decodedDate = decodeURIComponent(data);
     // Reutiliza a função para verificar registros pendentes
     const registrosPendentes = await verificarRegistrosPendentes(nome, decodedDate);
-    console.log('Registros pendentes encontrados:', registrosPendentes.length);
 
     // Retorna o total de registros pendentes
     res.status(200).json({
@@ -98,9 +93,6 @@ router.post('/registrar_docs', upload.fields([
     // Obtendo os caminhos dos arquivos
     const pdfFileName = req.files['file'][0].filename; // Nome do PDF gerado
     const cnhPhotoName = req.files['cnh_foto'][0].filename; // Nome da CNH gerada
-
-    console.log('PDF salvo com o nome:', pdfFileName);
-    console.log('Foto da CNH salva com o nome:', cnhPhotoName);
 
     // Atualizando o banco de dados
     try {

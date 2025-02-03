@@ -88,8 +88,7 @@ router.get('/formularios', authenticate, async (req, res) => {
 // Rota para atualizar um formulário
 router.put('/formularios/:id', async (req, res) => {
   const { id } = req.params;
-  const { nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor } = req.body;
-
+  const { nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, data_cadastro } = req.body;
   try {
     const result = await pool.query(
       `UPDATE formulario SET 
@@ -99,10 +98,11 @@ router.put('/formularios/:id', async (req, res) => {
           origem = $4, 
           intencao_compra = $5, 
           veiculo_interesse = $6,
-          vendedor = $7
-       WHERE id = $8
+          vendedor = $7,
+          data_cadastro = $8
+       WHERE id = $9
        RETURNING *`,
-      [nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, id]
+      [nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, data_cadastro, id]
     );
 
     // Verifica se o registro foi atualizado

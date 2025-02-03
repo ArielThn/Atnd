@@ -13,6 +13,9 @@ const { secretKey } = require('../config/config');
 //   "password": "123"
 // }
 
+// Ariel Ariel_2025@
+// Trescinco Trescinco_2025@
+
 const registerUser = async (req, res) => {
   console.log('Dados recebidos:', req.body); // Log para depuração
 
@@ -62,7 +65,7 @@ const loginUser = async (req, res) => {
 
     // Busca o usuário pelo nome (case insensitive) e traz o status de admin corretamente
     const userQuery = `
-      SELECT id, email, senha, nome, empresa, admin AS isAdmin
+      SELECT senha, nome, empresa, setor, admin AS isAdmin
       FROM usuarios
       WHERE LOWER(nome) = LOWER($1)
     `;
@@ -82,10 +85,9 @@ const loginUser = async (req, res) => {
     }
 
     // Cria o payload do token incluindo isAdmin
-    const payload = {
-      id: user.id,
-      email: user.email,
+    const payload = { 
       nome: user.nome,
+      setor : user.setor,
       empresa: user.empresa,
       isAdmin: user.isadmin,
     };
@@ -95,7 +97,6 @@ const loginUser = async (req, res) => {
 
     res.cookie('token', token, {
       path: '/',
-      httpOnly: true,
       secure: false,  // Tente `false` se estiver rodando em `localhost`
       sameSite: 'Lax', // Permite cookies entre subdomínios
     });

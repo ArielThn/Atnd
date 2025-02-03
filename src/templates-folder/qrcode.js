@@ -8,7 +8,6 @@ import jsPDF from "jspdf";
 import "../css-folder/pdfStyles.css";
 
 // Configure o root do modal para acessibilidade
-Modal.setAppElement("#root");
 const apiUrl = process.env.REACT_APP_API_URL;
 
 function TermoResponsabilidadeAssinatura() {
@@ -50,7 +49,7 @@ function TermoResponsabilidadeAssinatura() {
     try {
       const formattedDate = dataParam;
 
-      const response = await fetch(`${apiUrl}/docs`, {
+      const response = await fetch(`${apiUrl}/api/docs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -216,7 +215,7 @@ function TermoResponsabilidadeAssinatura() {
       formData.append("data", dataParam); // Certifique-se de que `dataParam` está definido
 
       // Envia para o backend
-      const response = await fetch(`${apiUrl}/registrar_docs`, {
+      const response = await fetch(`${apiUrl}/api/registrar_docs`, {
         method: "POST",
         body: formData,
       });

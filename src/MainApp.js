@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import Sidebar from './templates-folder/sidebar';
 import Grafico from './templates-folder/grafico';
 import Registros from './templates-folder/registros'; // Registros gerais
@@ -11,6 +12,7 @@ import GraficoTestDrive from './templates-folder/grafico_testdrive';
 import './css-folder/MainApp.css';
 
 const MainApp = ({ onLogout, isAdmin }) => {
+  const navigate = useNavigate(); // Initialize navigate
   const [activeComponent, setActiveComponent] = useState('grafico');
   const [registros, setRegistros] = useState([]); // Lista de registros de saída
   const [selectedRegistro, setSelectedRegistro] = useState(null); // Registro selecionado para confirmação
@@ -34,6 +36,19 @@ const MainApp = ({ onLogout, isAdmin }) => {
     );
     setSelectedRegistro(null); // Fecha o modal
   };
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(";").shift()
+    return null
+  }
+
+  useEffect(() => {
+    const token = getCookie("token");
+    if (!token) {
+      navigate('/login'); // Use navigate function for redirection
+    }
+  }, [navigate]); // Dependency array should include 'navigate'
 
   return (
     <div className="main-app-container">
@@ -45,7 +60,7 @@ const MainApp = ({ onLogout, isAdmin }) => {
         {/* Gráficos */}
         {activeComponent === 'grafico' && <Grafico />}
         {/* Gráficos */}
-        {activeComponent === 'grafico Test' && <GraficoTestDrive />}
+        {activeComponent === 'grafico testdrive' && <GraficoTestDrive />}
 
         {/* Registros Gerais */}
         {activeComponent === 'registros' && (

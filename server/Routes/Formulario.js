@@ -44,12 +44,12 @@ router.post('/clientes', authenticate, async (req, res) => {
     origem = null,
     telefone = null,
     veiculoInteresse = null,
-    vendedor = null
+    vendedor = null,
+    horario = null
   } = req.body;
 
   const empresa = req.user.empresa;
   let vendedorCodigo = null;  // Declarando com let para possibilidade de reatribuição
-
 
   try {
     // Buscar código do vendedor com base no nome fornecido
@@ -70,9 +70,9 @@ router.post('/clientes', authenticate, async (req, res) => {
       `INSERT INTO formulario 
         (nome, telefone, cpf, origem, intencao_compra, quantidade_acompanhantes, veiculo_interesse, empresa, vendedor, vendedor_codigo, data_cadastro)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *`,
-      [nome, telefone, cpf, origem, intencaoCompra, acompanhantesValue, veiculoInteresse, empresa, vendedor, vendedorCodigo]
+      [nome, telefone, cpf, origem, intencaoCompra, acompanhantesValue, veiculoInteresse, empresa, vendedor, vendedorCodigo, horario]
     );
 
     res.status(201).json({ message: 'Dados cadastrados com sucesso!', cliente: result.rows[0] });

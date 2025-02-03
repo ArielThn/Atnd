@@ -44,7 +44,7 @@ function Sidebar({ onLogout, onChangeComponent }) {
 
   return (
     <div
-      className={`fixed top-0 left-0 min-h-screen bg-[#001e50] text-white flex flex-col items-center justify-between overflow-hidden transition-[width] duration-300 ease-in-out ${
+      className={`fixed z-10 top-0 left-0 min-h-screen bg-[#001e50] text-white flex flex-col items-center justify-between overflow-hidden transition-[width] duration-300 ease-in-out ${
         isOpen ? 'w-[200px]' : 'w-[120px]'
       }`}
       onMouseEnter={() => setIsOpen(true)}
@@ -67,14 +67,14 @@ function Sidebar({ onLogout, onChangeComponent }) {
             <FaHome className="mr-2 text-[28px]" />
             {showText && <span>Gráficos</span>}
           </li>
-          {/*  */}
           {/* <li
-            onClick={() => onChangeComponent('grafico Test')}
+            onClick={() => onChangeComponent('grafico testdrive')}
             className="flex items-center justify-center w-full py-3 cursor-pointer text-white text-base font-medium transition-colors duration-200 hover:bg-[#00509e] rounded-lg"
           >
             <FaHome className="mr-2 text-[28px]" />
             {showText && <span>Gráficos</span>}
           </li> */}
+        
           <li
             onClick={() => onChangeComponent('registros')}
             className="flex items-center justify-center w-full py-3 cursor-pointer text-white text-base font-medium transition-colors duration-200 hover:bg-[#00509e] rounded-lg"

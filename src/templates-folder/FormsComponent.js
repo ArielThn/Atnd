@@ -18,7 +18,18 @@ function ClientForm({ isAdmin }) {
   const [acompanhantes, setAcompanhantes] = useState('');
   const [veiculoInteresse, setVeiculoInteresse] = useState('');
   const [vendedorSelecionado, setVendedorSelecionado] = useState('');
-
+  const [horario, setHorario] = useState(() => {
+    // Obter a data e hora atuais no formato YYYY-MM-DDTHH:MM
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Ajusta o mês para dois dígitos
+    const day = String(now.getDate()).padStart(2, '0'); // Ajusta o dia para dois dígitos
+    const hours = String(now.getHours()).padStart(2, '0'); // Ajusta a hora para dois dígitos
+    const minutes = String(now.getMinutes()).padStart(2, '0'); // Ajusta os minutos para dois dígitos
+    
+    // Formatar para o formato 'YYYY-MM-DDTHH:MM'
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  });
   const [newOrigem, setNewOrigem] = useState('');
   const [showOrigemInput, setShowOrigemInput] = useState(false);
   const [newIntencao, setNewIntencao] = useState('');
@@ -55,6 +66,7 @@ function ClientForm({ isAdmin }) {
     setAcompanhantes('');
     setVeiculoInteresse('');
     setVendedorSelecionado('');
+    setHorario('');
   };
 
   const deletarVeiculoInteresse = async (id) => {
@@ -262,7 +274,6 @@ const deletarIntencaoCompra = async (id) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // const formattedIntencaoCompra = intencaoCompra.join(', ');
     const formData = {
       nome,
       telefone,
@@ -272,6 +283,7 @@ const deletarIntencaoCompra = async (id) => {
       acompanhantes,
       veiculoInteresse,
       vendedor: vendedorSelecionado,
+      horario,
     };
 
     try {
@@ -605,8 +617,26 @@ const deletarIntencaoCompra = async (id) => {
                   </select>
                 </div>
               </div>
-            </>
+              </>
           )}
+              {/* Nova div com o campo de data */}
+              <div className="space-y-4">
+                <h3 className="text-[#001e50] text-xl font-bold">7. Data e Hora *</h3>
+                <div className="relative w-full">
+                  <label htmlFor="data" className="block text-gray-700 font-medium mb-1">
+                    Selecione a Data e Hora
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="data"
+                    name="data"
+                    value={horario} // Aqui você controla o valor da data e hora
+                    onChange={(e) => setHorario(e.target.value)} // Atualiza o estado com a data e hora selecionada
+                    required
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+                  />
+                </div>
+              </div>
   
           <button
             type="submit"

@@ -5,6 +5,7 @@ import "../css-folder/registros.css"
 import {jwtDecode} from "jwt-decode" // Importação corrigida
 import { FaEdit, FaRegTrashAlt , FaFileAlt } from "react-icons/fa"
 import { FaFileCsv } from "react-icons/fa6";
+import { MdKeyboardArrowDown } from "react-icons/md";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -54,7 +55,6 @@ function UserTable() {
   // Estados para filtros e busca
   const [month, setMonth] = useState(0) // Valor padrão '0' para 'Todos os Meses'
   const [year, setYear] = useState(0) // Valor padrão '0' para 'Todos os Anos'
-  const [company, setCompany] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
   // Estado para tabela ativa
@@ -85,9 +85,10 @@ function UserTable() {
   // Estados para edição
   const [selectedUser, setSelectedUser] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [company, setCompany] = useState(decoded.empresa)
+
 
   const formatDate = (dateString, timeZone = "America/Cuiaba") => {
-    if (!dateString) return "Data não disponível"
     const date = new Date(dateString)
     return isNaN(date.getTime())
       ? "Data inválida"
@@ -282,24 +283,29 @@ function UserTable() {
   useEffect(() => {
     const fetchDateOptions = async () => {
       try {
-        const response = await fetch(`${apiUrl}/api/date-options/${activeTable}`);
+        const response = await fetch(`${apiUrl}/api/date-options/${activeTable}?empresa=${company}`);
         if (!response.ok) {
           throw new Error("Erro ao buscar opções de data.");
         }
-  
+    
         const data = await response.json();
-        const years = [...new Set(data.rows.map(item => item.year))];
-        const months = [...new Set(data.rows.map(item => item.month))];
+    
+        // Extrair anos e meses únicos
+        const years = [...new Set(data.map(item => item.year))];
+        const months = [...new Set(data.map(item => item.month))];
+    
+        // Atualizar os estados com os valores únicos
         setYearOptions(years);
         setMonthOptions(months);
+    
       } catch (error) {
         console.error("Erro ao buscar opções de data:", error);
       }
     };
+     
   
     fetchDateOptions();
   }, [activeTable]); // Atualiza sempre que a tabela ativa mudar
-  
 
   // Função de busca para as Tabelas Saída e Entrada (modificadas para usar os novos endpoints)
   const fetchSpecificData = async (page = 1) => {
@@ -369,7 +375,7 @@ function UserTable() {
     else if (activeTable === "TestDrive")
       fetchTestDriveData(testDrivePagination.currentPage); // Adicione esta linha
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTable,year, month, company]);
+  }, [activeTable, year, month, company]);
 
   // Resetar página quando filtros mudam
   useEffect(() => {
@@ -1110,25 +1116,28 @@ const fetchSearchData = async (page = 1) => {
 
         <div className="search flex space-x-2">
           {/* Seletor de Ano */}
-          <div>
+          <div className="relative">
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="p-2 border border-gray-300 rounded-md"
+              className="p-3 border border-gray-300 rounded-md w-full pr-6 focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value={0}>Todos os anos</option>
               {yearOptions.map((year, index) => (
                 <option key={index} value={year}>{year}</option>
               ))}
             </select>
+            <div className="absolute inset-y-0 bottom-0 right-0 flex items-center pointer-events-none">
+              <MdKeyboardArrowDown className="text-gray-500 text-2xl" />
+            </div>
           </div>
 
           {/* Seletor de Mês */}
-          <div>
+          <div className="relative">
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              className="p-2 border border-gray-300 rounded-md"
+              className="p-3 border border-gray-300 rounded-md w-full pr-6 focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value={0}>Todos os meses</option>
               {monthOptions.map((month, index) => (
@@ -1137,7 +1146,11 @@ const fetchSearchData = async (page = 1) => {
                 </option>
               ))}
             </select>
+            <div className="absolute inset-y-0 bottom-0 right-0 flex items-center pointer-events-none">
+              <MdKeyboardArrowDown className="text-gray-500 text-2xl" />
+            </div>
           </div>
+
             {year !== 0 &&(
             <div className="flex items-center justify-center px-2 cursor-pointer border rounded"
             onClick={exportarParaCSV}
@@ -1148,15 +1161,20 @@ const fetchSearchData = async (page = 1) => {
 
           {/* Seletor de Empresa, visível para administradores */}
           {decoded?.isAdmin && (
+          <div className="relative">
             <select
               value={company}
               onChange={(e) => setCompany(e.target.value)} // Atualiza a empresa selecionada
-              className="p-2 border border-gray-300 rounded-md"
+              className="p-3 border border-gray-300 rounded-md w-full pr-6 focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value="all">Todas as Empresas</option>
               <option value="2">Ariel</option>
               <option value="1">Trescinco</option>
             </select>
+            <div className="absolute inset-y-0 bottom-0 right-0 flex items-center pointer-events-none">
+              <MdKeyboardArrowDown className="text-gray-500 text-2xl" />
+            </div>
+          </div>
           )}
         </div>
       </div>
@@ -1188,21 +1206,21 @@ const fetchSearchData = async (page = 1) => {
             <form onSubmit={handleEditSubmit} className="space-y-4">
               {/* Nome */}
               <label className="flex flex-col text-gray-700">
-                Nome *
+                Nome
                 <input
                   type="text"
                   name="nome"
                   placeholder="Insira o nome"
                   value={selectedUser.nome || ""}
                   onChange={handleEditChange}
-                  required
+                  
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </label>
 
               {/* Telefone */}
               <label className="flex flex-col text-gray-700">
-              Telefone *
+              Telefone
               <input
                 type="text"
                 name="telefone"
@@ -1212,7 +1230,7 @@ const fetchSearchData = async (page = 1) => {
                   const numericValue = e.target.value.replace(/\D/g, ""); // Remove formatação
                   handleEditChange({ target: { name: "telefone", value: numericValue } }); // Salva sem formatação
                 }}
-                required
+                
                 className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 maxLength={15} // Limite correspondente à máscara "(XX) XXXXX-XXXX"
               />
@@ -1220,7 +1238,7 @@ const fetchSearchData = async (page = 1) => {
 
               {/* CPF */}
               <label className="flex flex-col text-gray-700">
-              CPF/CNPJ *
+              CPF/CNPJ
               <input
                 type="text"
                 name="cpfCnpj"
@@ -1235,7 +1253,7 @@ const fetchSearchData = async (page = 1) => {
                     target: { name: "cpf", value: unformattedValue }
                   });
                 }}
-                required
+                
                 className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 maxLength={18}  // Limite do banco (apenas números, sem a máscara)
               />
@@ -1243,12 +1261,12 @@ const fetchSearchData = async (page = 1) => {
 
               {/* Origem */}
               <label className="flex flex-col text-gray-700">
-                Origem *
+                Origem
                 <select
                   name="origem"
                   value={selectedUser.origem || ""}
                   onChange={handleEditChange}
-                  required
+                  
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
@@ -1264,12 +1282,12 @@ const fetchSearchData = async (page = 1) => {
 
               {/* Intenção de Compra */}
               <label className="flex flex-col text-gray-700">
-                Intenção de Compra *
+                Intenção de Compra
                 <select
                   name="intencao_compra"
                   value={selectedUser.intencao_compra || ""}
                   onChange={handleEditChange}
-                  required
+                  
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
@@ -1285,12 +1303,12 @@ const fetchSearchData = async (page = 1) => {
 
               {/* Vendedor */}
               <label className="flex flex-col text-gray-700">
-                Vendedor *
+                Vendedor
                 <select
                   name="vendedor"
                   value={selectedUser.vendedor || ""}
                   onChange={handleEditChange}
-                  required
+                  
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
@@ -1306,12 +1324,12 @@ const fetchSearchData = async (page = 1) => {
 
               {/* Veículo de Interesse */}
               <label className="flex flex-col text-gray-700">
-                Veículo de Interesse *
+                Veículo de Interesse
                 <select
                   name="veiculo_interesse"
                   value={selectedUser.veiculo_interesse || ""}
                   onChange={handleEditChange}
-                  required
+                  
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
@@ -1323,6 +1341,22 @@ const fetchSearchData = async (page = 1) => {
                     </option>
                   ))}
                 </select>
+              </label>
+              {/* Data */}
+              <label className="flex flex-col text-gray-700">
+                <div className="space-y-4">
+                  Data e hora
+                  <div className="relative w-full">
+                    <input
+                      type="datetime-local"
+                      id="data"
+                      name="data_cadastro" // Certifique-se de que o nome seja correto
+                      value={new Date(selectedUser.data_cadastro).toISOString().slice(0, 16)} // Formatação correta
+                      onChange={handleEditChange} // Atualiza o estado com a data e hora selecionada
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+                    />
+                  </div>
+                </div>
               </label>
 
               <div className="mt-4 flex justify-end">

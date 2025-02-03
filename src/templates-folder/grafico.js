@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { Bar, Doughnut, Line } from "react-chartjs-2"
-import Cookies from 'universal-cookie';
-import { jwtDecode } from 'jwt-decode';
+import { MdKeyboardArrowDown } from "react-icons/md";
 
 import {
   Chart as ChartJS,
@@ -17,6 +16,7 @@ import {
 } from "chart.js"
 import "../css-folder/grafico.css"
 import ChartDataLabels from "chartjs-plugin-datalabels"
+import html2canvas from "html2canvas";
 
 // Registre os componentes do Chart.js
 ChartJS.register(
@@ -41,6 +41,11 @@ const origensBackgroundColors = [
   "#003366", "#004080", "#0059b3", "#0073e6", "#3399ff",
 ]
 
+const testDriveBackGroundColors = [
+  "#003366", "#003b74", "#004080", "#00458f", "#004b9d", "#0051ac", "#0057ba", "#005db9", "#0063c7", "#0069d5", 
+  "#0070e3", "#0076f2", "#007cf0", "#0082ef", "#0088ed", "#008efc", "#0094fa", "#009bff", "#00a2ff", "#3399ff"
+]
+
 const barChartColors = {
   Trescinco: "#007bff",
   Ariel: "#001e50",
@@ -50,6 +55,9 @@ const apiUrl = process.env.REACT_APP_API_URL;
 
 
 function Dashboard() {
+  const [vendedorData, setVendedorData] = useState([]);
+  const [carrosTestDrive, setCarrosTestDrive] = useState(null)
+  const [vendedoresData, setVendedoresData] = useState({ labels: [], datasets: [] })
   const [barData, setBarData] = useState(null)
   const [carrosData, setCarrosData] = useState({ labels: [], datasets: [] })
   const [donutDataOrigem, setDonutDataOrigem] = useState(null)
@@ -59,7 +67,6 @@ function Dashboard() {
     monthlyCount: 0,
   })
   const [mesSelecionado, setMesSelecionado] = useState(null) // Inicializar como null
-  const [tabela, setTabela] = useState()
   // Lista de meses
   const meses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -311,6 +318,102 @@ function Dashboard() {
       setLoading(prev => ({ ...prev, donutDataOrigem: false }))
     }
   }
+  const fetchVendedoresData = async () => {
+    setLoading(prev => ({ ...prev, vendedoresData: true }))
+    try {
+      const response = await fetch(
+        `${apiUrl}/api/testdrive/contagem-vendedores?ano=${Number(anoSelecionado)}&mes=${Number(mesSelecionado)}`, // Usar mês selecionado
+        { credentials: "include" }
+      )
+  
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status} - ${response.statusText}`)
+      }
+  
+      const data = await response.json()
+  
+      // Novo formato de dados, agora são vendedores e suas quantidades
+      const vendedorData = data.map(item => {
+        // Truncando o nome do vendedor apenas para o label, sem afetar o nome completo
+        const truncatedName = item.nome_vendedor.includes(" ") 
+          ? item.nome_vendedor.slice(0, item.nome_vendedor.indexOf(" ") + 2) + "..." // Trunca até o espaço + 1 letra adicional e adiciona "..."
+          : item.nome_vendedor; // Caso não tenha espaço, usa o nome completo
+  
+        return {
+          nome_vendedor_completo: item.nome_vendedor, // Nome completo
+          nome_vendedor_truncado: truncatedName, // Nome truncado apenas para o label
+          quantidade: parseInt(item.quantidade, 10)
+        }
+      })
+  
+      setVendedorData(vendedorData); // Armazenar os dados no estado
+  
+      // Labels do gráfico (usando o nome truncado para exibição no gráfico)
+      const vendedorLabels = vendedorData.map(item => item.nome_vendedor_truncado)
+  
+      // Quantidades dos vendedores
+      const vendedorQuantidades = vendedorData.map(item => item.quantidade)
+  
+      // Atualizando os dados do gráfico
+      setVendedoresData({
+        labels: vendedorLabels, // Usando o nome truncado nas labels
+        datasets: [{
+          data: vendedorQuantidades,
+          backgroundColor: testDriveBackGroundColors, // Cores dos gráficos
+        }],
+      })
+  
+      setErrors(prev => ({ ...prev, vendedoresData: null }))
+    } catch (error) {
+      console.error("Erro ao buscar dados dos carros:", error)
+      setErrors(prev => ({ ...prev, vendedoresData: error.message }))
+    } finally {
+      setLoading(prev => ({ ...prev, vendedoresData: false }))
+    }
+  }
+
+  
+  const fetchCarroTestDrive = async () => {
+    setLoading(prev => ({ ...prev, carrosTestDrive: true }))
+    try {
+      const response = await fetch(
+        `${apiUrl}/api/testdrive/contagem-carros?ano=${Number(anoSelecionado)}&mes=${Number(mesSelecionado)}`, // Usar mês selecionado
+        { credentials: "include" }
+      )
+  
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status} - ${response.statusText}`)
+      }
+  
+      const data = await response.json()
+  
+      let origemLabels = []
+      let origemQuantidades = []
+      // Nova estrutura de dados, mapeando os carros e suas quantidades
+      const carData = data.map(item => ({
+        nome_origem: item.carro,
+        quantidade: parseInt(item.quantidade, 10)
+      }))
+  
+      origemLabels = carData.map(item => item.nome_origem)
+      origemQuantidades = carData.map(item => item.quantidade)
+  
+      setCarrosTestDrive({
+        labels: origemLabels,
+        datasets: [{
+          data: origemQuantidades,
+          backgroundColor: testDriveBackGroundColors, // Restaurar cores originais
+        }],
+      })
+  
+      setErrors(prev => ({ ...prev, carrosTestDrive: null }))
+    } catch (error) {
+      console.error("Erro ao buscar dados de origem:", error)
+      setErrors(prev => ({ ...prev, carrosTestDrive: error.message }))
+    } finally {
+      setLoading(prev => ({ ...prev, carrosTestDrive: false }))
+    }
+  }
 
   // Função para buscar os dados do gráfico de barras
   const fetchBarData = async () => {
@@ -406,6 +509,8 @@ function Dashboard() {
       fetchBarData()
       fetchCarrosData()
       fetchDataOrigem()
+      fetchCarroTestDrive()
+      fetchVendedoresData()
       fetchCounts()
     }
   }, [anoSelecionado, mesSelecionado])
@@ -415,30 +520,35 @@ function Dashboard() {
 {/* Select para o Ano */}
       <div className="flex gap-8">
         
-        <div className="pb-8">
+        <div className="relative pb-8 ">
           <select 
             value={anoSelecionado || ""} 
             onChange={handleAnoChange} 
-            className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-full w-full pr-10 focus:ring-2 focus:ring-blue-500 appearance-none"
           >
             <option value="" disabled>Selecione o Ano</option>
-            {[...new Set(anosMeses.map(item => item.ano))].sort((a, b) => b - a).map((ano) => (
-              <option key={ano} value={ano}>{ano}</option>
-            ))}
+            {[...new Set(anosMeses.map(item => item.ano))]  // Extrai os anos únicos
+              .sort((a, b) => b - a)  // Ordena os anos em ordem decrescente
+              .map((year, index) => (  // Mapeia os anos para criar as opções
+                <option key={index} value={year}>{year}</option>
+              ))}
           </select>
-          {loading.anosMeses && <p>Carregando anos...</p>}
-          {errors.anosMeses && <p className="text-red-500">{errors.anosMeses}</p>}
+
+          {/* Ícone da seta dentro do Select */}
+          <div className="absolute inset-y-0 right-3 bottom-8 flex items-center pointer-events-none">
+            <MdKeyboardArrowDown className="text-gray-500 text-2xl" />
+          </div>
         </div>
 
         {/* Select para o Mês */}
         {anoSelecionado && (
-          <div className="pb-8">
+          <div className="relative pb-8">
             <select
               id="mes"
               name="mes"
               value={mesSelecionado || ""}
               onChange={handleMesChange}
-              className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="p-3 border border-gray-300 rounded-full w-full pr-10 focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value="" disabled>Selecione o Mês</option>
               {mesesDisponiveis.map((mesNumero) => (
@@ -447,6 +557,10 @@ function Dashboard() {
                 </option>
               ))}
             </select>
+            {/* Ícone da seta dentro do Select */}
+            <div className="absolute inset-y-0 right-3 bottom-8 flex items-center pointer-events-none">
+              <MdKeyboardArrowDown className="text-gray-500 text-2xl" />
+            </div>
             {loading.mesesDisponiveis && <p>Carregando meses...</p>}
             {errors.mesesDisponiveis && <p className="text-red-500">{errors.mesesDisponiveis}</p>}
           </div>
@@ -472,7 +586,7 @@ function Dashboard() {
       {/* Gráficos de Origem e Carros */}
       <div className="flex justify-center mb-4">
         {/* Gráfico de Origem */}
-        <div className="bg-white p-2 rounded-lg h-96 pb-8 w-1/2 flex flex-col items-center">
+        <div className="bg-white p-2 rounded-lg h-64 pb-8 w-1/2 flex flex-col items-center">
           <div className="py-4">
             <h4>Origem</h4>
           </div>
@@ -512,7 +626,7 @@ function Dashboard() {
         </div>
 
         {/* Gráfico de Carros */}
-        <div className="bg-white p-2 rounded-lg h-96 pb-8 w-1/2 flex flex-col items-center">
+        <div className="bg-white p-2 rounded-lg h-64 pb-8 w-1/2 flex flex-col items-center">
           <div className="py-4">
             <h4>Carros</h4>
           </div>
@@ -551,6 +665,101 @@ function Dashboard() {
           ) : null}
         </div>
       </div>
+
+
+      {carrosTestDrive && carrosTestDrive.labels && carrosTestDrive.labels.length > 0 && (
+        <div className="flex justify-center mb-4">
+          <div className="bg-white p-2 rounded-lg h-64 pb-8 w-1/2 flex flex-col items-center">
+            <div className="py-4">
+              <h4>Carros por Test Drive</h4>
+            </div>
+            {carrosTestDrive ? (
+              <Doughnut
+                data={carrosTestDrive}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: "bottom",
+                      labels: {
+                        boxWidth: 15,
+                        generateLabels: (chart) => {
+                          return chart.data.labels.map((label, i) => ({
+                            text: `${label} (${chart.data.datasets[0].data[i]})`,
+                            fillStyle: chart.data.datasets[0].backgroundColor[i],
+                            hidden: false,
+                            index: i,
+                          }))
+                        },
+                      },
+                    },
+                    datalabels: {
+                      display: true,
+                      color: "white",
+                      font: { weight: "bold", size: 12 },
+                      formatter: (value) => value,
+                    },
+                  },
+                }}
+              />
+            ) : loading.carrosTestDrive ? (
+              <p>Carregando gráfico de origens...</p>
+            ) : null}
+          </div>
+
+          <div className="bg-white p-2 rounded-lg h-64 pb-8 w-1/2 flex flex-col items-center">
+        <div className="py-4">
+          <h4>Carros por Vendedor</h4>
+        </div>
+        {vendedoresData && vendedoresData.labels.length > 0 ? (
+          <Doughnut
+          data={vendedoresData}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  boxWidth: 15,
+                  generateLabels: (chart) => {
+                    return chart.data.labels.map((label, i) => ({
+                      text: `${label} (${chart.data.datasets[0].data[i]})`,
+                      fillStyle: chart.data.datasets[0].backgroundColor[i],
+                      hidden: false,
+                      index: i,
+                    }))
+                  },
+                },
+              },
+              datalabels: {
+                display: true,
+                color: "white",
+                font: { weight: "bold", size: 12 },
+                formatter: (value) => value,
+              },
+              tooltip: {
+                callbacks: {
+                  title: (tooltipItem) => {
+                    const itemIndex = tooltipItem[0].dataIndex;
+                    return vendedorData[itemIndex].nome_vendedor_completo; // Exibe o nome truncado no título
+                  },
+                  label: (tooltipItem) => {
+                    const itemIndex = tooltipItem.dataIndex;
+                    return `QUANTIDADE DE BEST DRIVES: ${vendedorData[itemIndex].quantidade}`; // Exibe o nome completo no tooltip
+                  },
+                },
+              },
+            },
+          }}
+        />
+        ) : loading.vendedoresData ? (
+          <p>Carregando gráfico de carros...</p>
+        ) : null}
+        </div>
+      </div>
+      )}
 
       {/* Gráfico de Linhas */}
 <div className="chart-card line-chart limited-height mt-12">

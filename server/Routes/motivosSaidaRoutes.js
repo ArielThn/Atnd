@@ -12,7 +12,7 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decodifica o token
+    const decoded = jwt.verify(token, process.env.SECRET_KEY); // Decodifica o token
     req.user = decoded; // Salva os dados do usuário no objeto `req`
     next();
   } catch (error) {
