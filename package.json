@@ -17,7 +17,9 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "docx": "^9.1.0",
+    "dotenv": "^16.4.7",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
@@ -27,6 +29,7 @@
     "luxon": "^3.5.0",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
+    "openssl": "^2.0.0",
     "oracledb": "^6.7.1",
     "pg": "^8.13.1",
     "qrcode.react": "^4.2.0",
@@ -43,15 +46,15 @@
     "universal-cookie": "^7.2.2",
     "web-vitals": "^2.1.4"
   },
-  "scripts": {
-    "start": "powershell -Command \"$env:NODE_ENV='production'; node server/index.js\"",
-    "dev": "powershell -Command \"$env:NODE_ENV='development'; npx concurrently \\\"npm run start-client\\\" \\\"npm run start-server\\\"\"",
-    "start-client": "powershell -Command \"if ($env:NODE_ENV -eq 'development') { $env:PORT=3001 }; react-scripts start\"",
-    "start-server": "nodemon server/index.js",
-    "server": "node server/index.js",
-    "build": "react-scripts build",
-    "watch": "npx tailwindcss -i ./src/css-folder/tailwindcss.css -o ./src/css-folder/style.css --watch"
-    },
+"scripts": {
+  "start": "node server/index.js",
+  "dev": "npm run start-client & npm run start-server",
+  "start-client": "powershell -Command \"if ($env:NODE_ENV -eq 'development') { $env:PORT=3001 }; react-scripts start\"",
+  "start-server": "nodemon server/index.js",
+  "server": "node server/index.js",
+  "build": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts build",
+  "watch": "npx tailwindcss -i ./src/css-folder/tailwindcss.css -o ./src/css-folder/style.css --watch"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -78,6 +81,4 @@
     "tailwindcss": "^3.4.17"
   },
   "proxy": "http://localhost:5000"
-
 }
-

@@ -30,7 +30,8 @@ function TermoResponsabilidadeAssinatura() {
 
   const url = new URL(window.location.href);
   const params = new URLSearchParams(url.search);
-
+  
+  const empresa = params.get("empresa") || "Nome não informado";
   const nome = params.get("nome") || "Nome não informado";
   const dataParam = params.get("data") || "Data não informada"; // Renomeado para evitar conflito
 
@@ -257,9 +258,11 @@ function TermoResponsabilidadeAssinatura() {
       >
         <div className="mb-16">
           <h1 className="text-4xl text-center mb-6">
-            ARIEL AUTOMÓVEIS
+            {empresa === '2' && "ARIEL AUTOMÓVEIS"}
+            {empresa === '1' && "TRESCINCO AUTOMÓVEIS"}
           </h1>
           <h2 className="text-3xl text-center mb-4 text-black">
+
             Termo de Responsabilidade - BEST DRIVE
           </h2>
         </div>
@@ -267,11 +270,12 @@ function TermoResponsabilidadeAssinatura() {
           Eu, {dados?.nome_cliente}, portador do RG nº {dados?.rg_cliente || "N/A"}, CPF nº{" "}
           {dados?.cpf_cliente || "N/A"}, e CNH nº {dados?.cnh_cliente || "N/A"},
           na qualidade de participante de um{" "}
-          <span className="italic">“test drive”</span> realizado em Várzea
-          Grande–MT, no dia {formatDate(dados?.data_horario)}, declaro estar em
+          <span className="italic">“test drive” </span> 
+          realizado em {empresa === '2' && " Várzea Grande"}{empresa === '1' && " Cuiabá"}–MT, no 
+          dia {formatDate(dados?.data_horario)}, declaro estar em
           plenas condições físicas e psicológicas para conduzir o veículo de
-          propriedade da Ariel Automóveis Várzea Grande LTDA durante o referido
-          teste.
+          propriedade da {empresa === '2' && " Ariel Automóveis Várzea Grande "}{empresa === '1' && " Trescinco Automóveis Cuiabá "} 
+           LTDA durante o referido teste.
         </p>
         <p className="mb-8 text-justify">
           Declaro, ainda, que assumo total responsabilidade, civil e criminal,
@@ -281,11 +285,13 @@ function TermoResponsabilidadeAssinatura() {
           confiado pela referida empresa. Comprometo-me a responder
           integralmente por eventuais infrações de trânsito, multas, danos
           materiais ou morais, seja à empresa, a terceiros ou a mim mesmo,
-          isentando desde já a Ariel Automóveis de qualquer responsabilidade
-          nesse sentido.
+          isentando desde já a {empresa === '2' && " Ariel Automóveis "}{empresa === '1' && " Trescinco Automóveis "} 
+          de qualquer responsabilidade nesse sentido.
         </p>
         <p className="mb-8 text-justify">
-          Concordo, também, em fornecer à Ariel Automóveis os meus dados
+          Concordo, também, em fornecer à 
+          {empresa === '2' && " Ariel Automóveis "}{empresa === '1' && " Trescinco Automóveis "}
+          os meus dados
           pessoais acima e a imagem da minha CNH, exclusivamente para controle
           interno relativo à utilização de veículos e à realização de{" "}
           <span className="italic">test drives</span>.

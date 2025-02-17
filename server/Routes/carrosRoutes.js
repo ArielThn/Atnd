@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-require('dotenv').config({ path: './pg.env' }); // Certifique-se de carregar as variáveis do .env
+require('dotenv').config({ path: '' }); // Certifique-se de carregar as variáveis do .env
 const jwt = require('jsonwebtoken');
 const secretKey = process.env.SECRET_KEY; // Certifique-se de definir isso no .env
 

@@ -6,10 +6,13 @@ import {jwtDecode} from "jwt-decode" // Importação corrigida
 import { FaEdit, FaRegTrashAlt , FaFileAlt } from "react-icons/fa"
 import { FaFileCsv } from "react-icons/fa6";
 import { MdKeyboardArrowDown } from "react-icons/md";
+import QRCode from "react-qr-code";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
 function UserTable() {
+  const [qrUrl, setQrUrl] = useState(false)
+  const [qrModal, setQrModal] = useState(false)
   const [showCnhModal, setShowCnhModal] = useState(false)
   const [imageUrl, setImageUrl] = useState("")
   const [usuarios, setUsuarios] = useState([]);
@@ -414,12 +417,24 @@ function UserTable() {
     // Remove os espaços em excesso
     const nomeClienteTrimmed = nomeCliente.trim()
     const dataTrimmed = dataHorario.trim()
+    const token = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('token='))
+      ?.split('=')[1];
 
+    const decoded = token ? jwtDecode(token) : null;
     // Encode os dados para serem usados na URL
-    const qrPath = `qrcode?nome=${encodeURIComponent(nomeClienteTrimmed)}&data=${encodeURIComponent(dataTrimmed)}`
+    const qrPath = `qrcode?nome=${encodeURIComponent(nomeClienteTrimmed)}&data=${encodeURIComponent(dataTrimmed)}&empresa=${decoded.empresa}`
     const qrUrl = `${apiUrl}/${qrPath}`
-    // Implementar lógica adicional para exibir o QR code, se necessário
+    setQrUrl(qrUrl);
+    setQrModal(true)
   }
+
+     // Função para fechar o modal
+     const handleQrModalClose = () => {
+      setQrModal(false);
+    };
+  
 
   // Função para carregar a imagem e abrir o modal
   const getImage = async (id) => {
@@ -594,82 +609,92 @@ const fetchSearchData = async (page = 1) => {
   }
 };
 
-  const exportarParaCSV = async () => {
-    let dadosAtivos = [];
-    const baseUrl = `${apiUrl}/api/dados`;
-  
-    try {
-      if (year !== 0) {
-        // Realizar a requisição para buscar os dados da API
-        const url = `${baseUrl}?ano=${year}&mes=${month}&table=${activeTable}&company=${company}&search=${searchTerm}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.error("Erro ao buscar os dados da API:", response.statusText);
-          return;
-        }
-  
-        dadosAtivos = await response.json();
-      }
-  
-      if (!dadosAtivos || dadosAtivos.length === 0) {
-        console.error("Nenhum dado disponível para exportação.");
+const exportarParaCSV = async () => {
+  let dadosAtivos = [];
+  const baseUrl = `${apiUrl}/api/dados`;
+
+  try {
+    if (year !== 0) {
+      // Realizar a requisição para buscar os dados da API
+      const url = `${baseUrl}?ano=${year}&mes=${month}&table=${activeTable}&company=${company}&search=${searchTerm}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error("Erro ao buscar os dados da API:", response.statusText);
         return;
       }
-  
-      // Filtrar colunas que não devem ser incluídas no CSV
-      const colunasPermitidas = Object.keys(dadosAtivos[0]).filter(
-        coluna =>
-          !coluna.includes("id_") && // Excluir colunas que contenham "id_"
-          coluna !== "cnh_foto" &&   // Excluir coluna "cnh_foto"
-          coluna !== "termo_responsabilidade" // Excluir coluna "termo_responsabilidade"
-      );
-  
-      if (colunasPermitidas.length === 0) {
-        console.error("Nenhuma coluna permitida após o filtro.");
+
+      // Extrair os dados da propriedade "data"
+      const responseJson = await response.json();
+      if (!responseJson.data || !Array.isArray(responseJson.data)) {
+        console.error("Formato de resposta inesperado.");
         return;
       }
-  
-      // Gerar cabeçalhos do CSV apenas com colunas permitidas
-      const cabecalhos = colunasPermitidas.join(";");
-  
-      // Mapear os dados excluindo as colunas filtradas
-      const linhas = dadosAtivos.map(item => {
-        return colunasPermitidas
-          .map(coluna => {
-            const valor = item[coluna];
-            // Encapsular em aspas duplas se necessário
-            const valorString = String(valor || "").replace(/"/g, '""'); // Escapar aspas duplas
-            return `"${valorString}"`;
-          })
-          .join(";");
-      });
-  
-      // Conteúdo do CSV (cabeçalhos + linhas de dados)
-      const csvConteudo = [cabecalhos, ...linhas].join("\r\n");
-  
-      // Baixar o arquivo CSV
-      const blob = new Blob([csvConteudo], { type: "text/csv;charset=utf-8;" });
-  
-      // Criar URL para o Blob
-      const urlObject = URL.createObjectURL(blob);
-      
-      const link = document.createElement("a");
-      link.setAttribute("href", urlObject);
-      link.setAttribute("download", `tabela_${activeTable}_filtrada.csv`);
-      
-      // Simular o clique para download
-      document.body.appendChild(link);  // Garantir que o link esteja no DOM
-      link.click();
-      document.body.removeChild(link);  // Remover o link do DOM após o clique
-  
-      // Limpar o objeto URL após o uso
-      URL.revokeObjectURL(urlObject);
-  
-    } catch (error) {
-      console.error("Erro ao exportar para CSV:", error);
+      dadosAtivos = responseJson.data;
     }
-  };
-  
+
+    // Garantir que os dados existem e são um array
+    if (!Array.isArray(dadosAtivos) || dadosAtivos.length === 0) {
+      console.error("Nenhum dado disponível para exportação.");
+      return;
+    }
+
+    // Verificar se o primeiro item é um objeto válido
+    if (typeof dadosAtivos[0] !== "object" || dadosAtivos[0] === null) {
+      console.error("Os dados retornados não são válidos para exportação.");
+      return;
+    }
+
+    // Filtrar colunas que não devem ser incluídas no CSV
+    const colunasPermitidas = Object.keys(dadosAtivos[0]).filter(
+      coluna =>
+        !coluna.includes("id_") && // Excluir colunas que contenham "id_"
+        coluna !== "cnh_foto" &&    // Excluir coluna "cnh_foto"
+        coluna !== "termo_responsabilidade" // Excluir coluna "termo_responsabilidade"
+    );
+
+    if (colunasPermitidas.length === 0) {
+      console.error("Nenhuma coluna permitida após o filtro.");
+      return;
+    }
+
+    // Gerar cabeçalhos do CSV apenas com colunas permitidas
+    const cabecalhos = colunasPermitidas.join(";");
+
+    // Mapear os dados excluindo as colunas filtradas
+    const linhas = dadosAtivos.map(item => {
+      return colunasPermitidas
+        .map(coluna => {
+          const valor = item[coluna];
+          // Encapsular em aspas duplas se necessário e escapar aspas internas
+          const valorString = String(valor || "").replace(/"/g, '""');
+          return `"${valorString}"`;
+        })
+        .join(";");
+    });
+
+    // Conteúdo do CSV (cabeçalhos + linhas de dados)
+    const csvConteudo = [cabecalhos, ...linhas].join("\r\n");
+
+    // Criar Blob para download do arquivo CSV
+    const blob = new Blob([csvConteudo], { type: "text/csv;charset=utf-8;" });
+    const urlObject = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", urlObject);
+    link.setAttribute("download", `tabela_${activeTable}_filtrada.csv`);
+
+    // Simular o clique para download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Limpar o objeto URL após o uso
+    URL.revokeObjectURL(urlObject);
+
+  } catch (error) {
+    console.error("Erro ao exportar para CSV:", error);
+  }
+};
 
   const handleEditSubmit = async (e) => {
     e.preventDefault()
@@ -1390,6 +1415,21 @@ const fetchSearchData = async (page = 1) => {
             <div className="bg-white p-4 rounded-lg">
               <img src={imageUrl} alt="Foto CNH" className="w-auto h-auto" />
             </div>
+          </div>
+        </div>
+      )}
+
+      {qrModal && (
+        <div className="modal-overlay" onClick={handleQrModalClose}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>QRCode para Leitura</h3>
+            <div className="flex justify-center items-center">
+
+              <QRCode 
+              value={qrUrl} 
+              />
+            </div>
+            <button className="mt-8 border px-4 py-2 text-white bg-[#001e50] rounded-2xl" onClick={handleQrModalClose}>Fechar</button>
           </div>
         </div>
       )}

@@ -1,25 +1,42 @@
-require('dotenv').config({ path: './oracledb.env' }); // Carrega as variáveis de ambiente
-const oracledb = require('oracledb'); // Importa o módulo oracledb para se conectar ao Oracle
+const oracledb = require('oracledb');
+const crypto = require('crypto');
+const fs = require('fs');
+require('dotenv').config();
+
+const ALGORITHM = 'aes-256-cbc';
+
+// Carregar a chave de criptografia
+const { key } = JSON.parse(fs.readFileSync('C:\\Users\\jonathan.alexandre\\Documents\\secret_key.txt', 'utf-8'));
+
+// Função para descriptografar texto
+function decrypt(encryptedText) {
+    const [ivHex, encryptedData] = encryptedText.split(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(key, 'hex'), iv);
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf-8');
+    decrypted += decipher.final('utf-8');
+    return decrypted;
+}
 
 async function connectOracle() {
     try {
-        console.log("Tentando conectar ao Oracle com as seguintes configurações:");
-        console.log("Usuário:", process.env.ORACLE_USER);
-        console.log("Host/DSN:", process.env.ORACLE_DSN);
+        console.log("Descriptografando credenciais...");
+        
+        // Descriptografar credenciais antes de conectar
+        const user = decrypt(process.env.ORACLE_USER);
+        const password = decrypt(process.env.ORACLE_PASSWORD);
+        const connectString = decrypt(process.env.ORACLE_DSN);
 
-        // Teste a versão e as funções disponíveis
-        console.log("Versão do oracledb:", oracledb.versionString);
+        console.log("Tentando conectar ao Oracle com as credenciais descriptografadas...");
 
-        // Cria um pool de conexões com os dados de conexão
         const pool = await oracledb.createPool({
-            user: process.env.ORACLE_USER,
-            password: process.env.ORACLE_PASSWORD,
-            connectString: process.env.ORACLE_DSN
+            user,
+            password,
+            connectString
         });
         
         console.log("Conexão bem-sucedida ao Oracle!");
         
-        // Retorna uma conexão ativa a partir do pool
         return pool.getConnection();
     } catch (err) {
         console.error("Erro ao conectar ao Oracle:", err);

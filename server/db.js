@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './Pg.env' });
+require('dotenv').config({ path: '' });
 const { Pool } = require('pg');
 
 // Configuração da conexão com o banco de dados

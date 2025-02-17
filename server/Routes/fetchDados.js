@@ -34,23 +34,28 @@ router.get('/dados', async (req, res) => {
       companyField = "id_empresa";
     }
 
-    // Inicia a consulta SQL
+    // Inicia a query
     let query = `SELECT * FROM ${tableField} WHERE EXTRACT(YEAR FROM ${dateField}) = $1`;
     const queryParams = [ano];
 
-    // Adiciona o filtro de mês se mês não for 0
+    // Adiciona o filtro de mês, se fornecido
     if (mes && mes !== '0') {
-      query += ` AND EXTRACT(MONTH FROM ${dateField}) = $2`;
+      query += ` AND EXTRACT(MONTH FROM ${dateField}) = $${queryParams.length + 1}`;
       queryParams.push(mes);
     }
 
-    // Adiciona o filtro de empresa se company não for "all"
+    // Adiciona o filtro de empresa, se necessário
     if (company !== "all") {
       query += ` AND ${companyField} = $${queryParams.length + 1}`;
       queryParams.push(company);
     }
 
-    // Busca dinamicamente as colunas da tabela se o parâmetro search for fornecido
+    // Se a tabela for 'entrada', remove os registros com data_retorno null
+    if (table === 'entrada') {
+      query += ` AND data_retorno IS NOT NULL`;
+    }
+
+    // Adiciona o filtro de pesquisa se o parâmetro search for fornecido
     if (search) {
       const columnsResult = await pool.query(
         `SELECT column_name 
@@ -66,7 +71,9 @@ router.get('/dados', async (req, res) => {
           .map((col, index) => `CAST(${col.column_name} AS TEXT) ILIKE $${queryParams.length + index + 1}`);
         if (likeConditions.length > 0) {
           query += ` AND (${likeConditions.join(' OR ')})`;
-          queryParams.push(...columnsResult.rows.filter(col => !col.column_name.includes('data')).map(() => `%${search}%`));
+          queryParams.push(...columnsResult.rows
+            .filter(col => !col.column_name.includes('data'))
+            .map(() => `%${search}%`));
         }
       }
     }
@@ -83,20 +90,20 @@ router.get('/dados', async (req, res) => {
       return res.status(404).json({ error: 'Nenhum dado encontrado' });
     }
 
-    // Consulta o total de registros para calcular a paginação
-    const totalCountResult = await pool.query(
-      `SELECT COUNT(*) FROM ${tableField} WHERE EXTRACT(YEAR FROM ${dateField}) = $1`, 
-      [ano]
-    );
-
+    // Consulta para contar o total de registros (para paginação)
+    let totalCountQuery = `SELECT COUNT(*) FROM ${tableField} WHERE EXTRACT(YEAR FROM ${dateField}) = $1`;
+    let totalCountParams = [ano];
     if (mes && mes !== '0') {
-      totalCountResult.rowCount = await pool.query(
-        `SELECT COUNT(*) FROM ${tableField} WHERE EXTRACT(YEAR FROM ${dateField}) = $1 AND EXTRACT(MONTH FROM ${dateField}) = $2`, 
-        [ano, mes]
-      );
+      totalCountQuery += ` AND EXTRACT(MONTH FROM ${dateField}) = $${totalCountParams.length + 1}`;
+      totalCountParams.push(mes);
+    }
+    // Se for 'entrada', também removemos os registros com data_retorno null
+    if (table === 'entrada') {
+      totalCountQuery += ` AND data_retorno IS NOT NULL`;
     }
 
-    const totalRecords = parseInt(totalCountResult.rows[0].count);
+    const totalCountRes = await pool.query(totalCountQuery, totalCountParams);
+    const totalRecords = parseInt(totalCountRes.rows[0].count);
     const totalPages = Math.ceil(totalRecords / limit);
 
     // Enviar os dados encontrados com informações de paginação
@@ -115,5 +122,6 @@ router.get('/dados', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar dados' });
   }
 });
+
 
 module.exports = router;

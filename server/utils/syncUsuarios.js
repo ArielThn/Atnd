@@ -17,7 +17,6 @@ const syncUsuariosAtivos = async () => {
         const result = await oracleConn.execute(query);
 
         const usuariosOracle = result.rows; // Dados retornados do Oracle
-        console.log(`${usuariosOracle.length} usuários encontrados no Oracle.`);
 
         // Inserir ou atualizar dados na tabela `usuarios_geral` do PostgreSQL
         const insertQuery = `

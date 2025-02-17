@@ -4,7 +4,6 @@
 .main-app-container {
     display: flex;
     height: 100%; /* Altura da tela completa */
-    overflow: hidden;
   }
   
   

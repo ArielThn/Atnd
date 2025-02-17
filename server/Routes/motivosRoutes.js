@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-require('dotenv').config({ path: './pg.env' }); // Certifique-se de carregar o arquivo pg.env
+require('dotenv').config({ path: '' }); // Certifique-se de carregar o arquivo pg.env
 const jwt = require('jsonwebtoken');
 const secretKey = process.env.SECRET_KEY;
 

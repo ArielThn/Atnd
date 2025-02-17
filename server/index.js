@@ -1,5 +1,5 @@
-require('dotenv').config({ path: './Pg.env' });
-require('dotenv').config({ path: './oracledb.env' });
+require('dotenv').config();
+require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
@@ -40,8 +40,7 @@ const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 
 const app = express();
 
-const allowedOrigins = ["http://192.168.20.96:3001","http://192.168.20.96:3000"];
-
+const allowedOrigins = ["http://192.168.20.25:3000","http://192.168.20.96:3000"];
 app.use(cors({
   origin: (origin, callback) => {
     // Permite a origem da requisição ou um domínio específico
@@ -118,25 +117,12 @@ try {
 
 const port = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === "production";
+app.use(express.static(path.join(__dirname, '../build')));
 
-// 🔹 Servir os arquivos do React corretamente para cada ambiente
-if (isProduction) {
-    console.log("🔹 Modo Produção - Servindo React da pasta 'build'");
-    app.use(express.static(path.join(__dirname, '../build')));
-
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../build', 'index.html'));
-    });
-} else {
-    console.log("🔹 Modo Desenvolvimento - Servindo React diretamente do 'src'");
-    app.use(express.static(path.join(__dirname, '../src')));
-
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../src', 'index.html'));
-    });
-}
-
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  });
 // 🔹 Iniciar o Servidor
 app.listen(port, () => {
-    console.log(`✅ Servidor rodando em http://192.168.20.96:${port} no modo ${process.env.NODE_ENV}`);
+    console.log(`✅ Servidor rodando em http://192.168.20.25:${port} no modo ${process.env.NODE_ENV}`);
 });

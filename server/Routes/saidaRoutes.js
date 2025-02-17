@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: './pg.env' });
+require('dotenv').config({ path: '' });
 
 const secretKey = process.env.SECRET_KEY; // Certifique-se de definir isso no arquivo .env
 
 router.post('/registrar-saida', async (req, res) => {
   const {
-    nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, observacao, carro, motivo, placa
+    nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, observacao, carro, motivo, placa, foto_cnh, termo_responsabilidade
   } = req.body;
   const token = req.cookies.token;
 
@@ -21,13 +21,12 @@ router.post('/registrar-saida', async (req, res) => {
     const id_empresa = decoded.empresa;
 
     // Verifica se todos os campos obrigatórios foram enviados
-    if (!nome_cliente || !rg_cliente || !cpf_cliente || !cnh_cliente || !nome_vendedor || !data_horario || !carro || !placa || !motivo) {
-      console.error("Campos obrigatórios ausentes", { nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, carro, placa, motivo });
-      return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
+    if(!termo_responsabilidade){
+        if (!nome_cliente || !rg_cliente || !cpf_cliente || !cnh_cliente || !nome_vendedor || !data_horario || !carro || !placa || !motivo) {
+          console.error("Campos obrigatórios ausentes", { nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, carro, placa, motivo, foto_cnh, termo_responsabilidade });
+          return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
+      }
     }
-
-    // Logs para depuração
-    console.log("Dados recebidos:", { nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, carro, motivo, placa });
 
     // Busca o id_carro com base no modelo e placa
     const carroQuery = await pool.query(
@@ -55,13 +54,13 @@ router.post('/registrar-saida', async (req, res) => {
 
     // Insere o registro de saída no banco de dados
     const query = `
-      INSERT INTO registrar_saida (nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, observacao, carro, id_carro, id_motivo, id_empresa, placa)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      INSERT INTO registrar_saida (nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, observacao, carro, id_carro, id_motivo, id_empresa, placa, cnh_foto, termo_responsabilidade)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *;
     `;
     const values = [
       nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, observacao,
-      carro, id_carro, id_motivo, id_empresa, placa
+      carro, id_carro, id_motivo, id_empresa, placa, foto_cnh, termo_responsabilidade
     ];
 
     const result = await pool.query(query, values);
@@ -84,10 +83,5 @@ router.post('/registrar-saida', async (req, res) => {
 });
 
 
-
-router.post('/registrar-saida-doc', async (req, res) => {
-  const { nome_cliente, cpf_cliente, data_horario } = req.query;  // Obtém os parâmetros passados na URL
-
-});
 
 module.exports = router;
