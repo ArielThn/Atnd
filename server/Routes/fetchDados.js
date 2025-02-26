@@ -1,127 +1,127 @@
 const express = require('express');
 const pool = require('../db');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const { secretKey } = require('../config/config');
 
 router.get('/dados', async (req, res) => {
-  let { ano, mes, table, company, search, page = 1, limit = 10 } = req.query;
-
-  // Verificar se os parâmetros tabela e empresa foram passados
-  if (!table || !company) {
-    return res.status(400).json({ error: 'Faltando parâmetros: table ou company' });
+  const { search, table, data_inicio, data_fim } = req.query;
+  const token = req.cookies.token;
+  let decoded;
+  try {
+    decoded = jwt.verify(token, secretKey);
+  } catch (err) {
+    console.error('Token inválido:', err);
+    return res.status(401).json({ error: 'Token inválido' });
   }
-  if (!ano) {
-    return res.status(400).json({ error: "Faltando parâmetro: ano" });
+  const empresa = decoded.empresa;
+
+  if (!table) {
+    return res.status(400).json({ error: 'Faltando parâmetro: table' });
+  }
+
+  const validTables = ['geral', 'saida', 'entrada', 'TestDrive'];
+  if (!validTables.includes(table)) {
+    return res.status(400).json({ error: 'Tabela não válida' });
+  }
+
+  // Define os campos de acordo com a tabela selecionada
+  let tableName = '';
+  let dateField = '';
+  let empresaField = '';
+  let extraCondition = ''; // Condição extra para saída/entrada
+
+  if (table === 'geral') {
+    tableName = 'formulario';
+    dateField = 'data_cadastro';
+    empresaField = 'empresa';
+  } else if (table === 'saida') {
+    tableName = 'registrar_saida';
+    dateField = 'data_horario';
+    empresaField = 'id_empresa';
+    extraCondition = ' AND data_retorno IS NULL';
+  } else if (table === 'entrada') {
+    tableName = 'registrar_saida';
+    dateField = 'data_horario';
+    empresaField = 'id_empresa';
+    extraCondition = ' AND data_retorno IS NOT NULL';
+  } else if (table === 'TestDrive') {
+    tableName = 'test_drive';
+    dateField = 'data_cadastro';
+    empresaField = 'empresa';
   }
 
   try {
-    // Verificar se a tabela é válida
-    const validTables = ["geral", "saida", "entrada", "TestDrive"];
-    if (!validTables.includes(table)) {
-      return res.status(400).json({ error: "Tabela inválida" });
+    // Obtém as colunas da tabela
+    const columnResult = await pool.query(
+      `SELECT column_name, data_type 
+       FROM information_schema.columns 
+       WHERE table_name = $1 AND table_schema = 'public'`,
+      [tableName]
+    );
+
+    if (columnResult.rowCount === 0) {
+      return res.status(400).json({ error: 'Tabela não encontrada ou sem colunas' });
     }
 
-    // Definir os campos de data e empresa com base na tabela
-    let tableField = "";
-    let dateField = "";
-    let companyField = "";
-    if (table === 'geral') {
-      tableField = "formulario";
-      dateField = "data_cadastro";
-      companyField = "empresa";
-    } else if (table === 'saida' || table === 'entrada' || table === 'TestDrive') {
-      tableField = "registrar_saida";
-      dateField = "data_horario";
-      companyField = "id_empresa";
+    const columnNames = columnResult.rows;
+
+    // Monta a query base (incluindo a condição extra se houver)
+    let query = `SELECT * FROM ${tableName} WHERE 1=1 ${extraCondition}`;
+    const queryParams = [];
+
+    // Filtro pela empresa do token (de forma parametrizada)
+    query += ` AND ${empresaField} = $${queryParams.length + 1}`;
+    queryParams.push(empresa);
+
+    // Filtro de data, se data_inicio e data_fim forem fornecidos
+    if (data_inicio && data_fim) {
+      if (data_inicio === data_fim) {
+        // Se as datas forem iguais, filtra para o dia inteiro
+        query += ` AND ${dateField} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
+        const startDate = `${data_inicio} 00:00:00`;
+        const endDate = `${data_fim} 23:59:59`;
+        queryParams.push(startDate, endDate);
+      } else {
+        query += ` AND ${dateField} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
+        queryParams.push(data_inicio, data_fim);
+      }
     }
 
-    // Inicia a query
-    let query = `SELECT * FROM ${tableField} WHERE EXTRACT(YEAR FROM ${dateField}) = $1`;
-    const queryParams = [ano];
-
-    // Adiciona o filtro de mês, se fornecido
-    if (mes && mes !== '0') {
-      query += ` AND EXTRACT(MONTH FROM ${dateField}) = $${queryParams.length + 1}`;
-      queryParams.push(mes);
-    }
-
-    // Adiciona o filtro de empresa, se necessário
-    if (company !== "all") {
-      query += ` AND ${companyField} = $${queryParams.length + 1}`;
-      queryParams.push(company);
-    }
-
-    // Se a tabela for 'entrada', remove os registros com data_retorno null
-    if (table === 'entrada') {
-      query += ` AND data_retorno IS NOT NULL`;
-    }
-
-    // Adiciona o filtro de pesquisa se o parâmetro search for fornecido
+    // Filtro de busca dinâmica (search)
     if (search) {
-      const columnsResult = await pool.query(
-        `SELECT column_name 
-         FROM information_schema.columns 
-         WHERE table_name = $1 
-         AND table_schema = 'public'`, 
-        [tableField]
-      );
+      // Normaliza o termo removendo espaços extras e substituindo-os por '%'
+      const normalizedTerm = search.trim().replace(/\s+/g, '%');
+      const likeConditions = columnNames
+        .filter(col => {
+          const isCompatibleType = ['text', 'character varying', 'integer', 'numeric', 'boolean'].includes(col.data_type);
+          return !col.column_name.includes('data') && isCompatibleType;
+        })
+        .map(col => {
+          const paramIndex = queryParams.length + 1;
+          queryParams.push(`%${normalizedTerm}%`);
+          return `CAST(${col.column_name} AS TEXT) ILIKE $${paramIndex}`;
+        })
+        .join(' OR ');
 
-      if (columnsResult.rowCount > 0) {
-        const likeConditions = columnsResult.rows
-          .filter(col => !col.column_name.includes('data')) // Remove colunas com "data" no nome
-          .map((col, index) => `CAST(${col.column_name} AS TEXT) ILIKE $${queryParams.length + index + 1}`);
-        if (likeConditions.length > 0) {
-          query += ` AND (${likeConditions.join(' OR ')})`;
-          queryParams.push(...columnsResult.rows
-            .filter(col => !col.column_name.includes('data'))
-            .map(() => `%${search}%`));
-        }
+      if (likeConditions) {
+        query += ` AND (${likeConditions})`;
       }
     }
 
-    // Adiciona LIMIT e OFFSET para paginação
-    const offset = (page - 1) * limit;
-    query += ` LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-    queryParams.push(limit, offset);
+    // Ordena os resultados pela data (decrescente)
+    query += ` ORDER BY ${dateField} DESC`;
 
-    // Executa a consulta para obter os registros
-    const result = await pool.query(query, queryParams);
+    // Executa a consulta sem paginação
+    const dataResult = await pool.query(query, queryParams);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Nenhum dado encontrado' });
-    }
-
-    // Consulta para contar o total de registros (para paginação)
-    let totalCountQuery = `SELECT COUNT(*) FROM ${tableField} WHERE EXTRACT(YEAR FROM ${dateField}) = $1`;
-    let totalCountParams = [ano];
-    if (mes && mes !== '0') {
-      totalCountQuery += ` AND EXTRACT(MONTH FROM ${dateField}) = $${totalCountParams.length + 1}`;
-      totalCountParams.push(mes);
-    }
-    // Se for 'entrada', também removemos os registros com data_retorno null
-    if (table === 'entrada') {
-      totalCountQuery += ` AND data_retorno IS NOT NULL`;
-    }
-
-    const totalCountRes = await pool.query(totalCountQuery, totalCountParams);
-    const totalRecords = parseInt(totalCountRes.rows[0].count);
-    const totalPages = Math.ceil(totalRecords / limit);
-
-    // Enviar os dados encontrados com informações de paginação
     res.json({
-      data: result.rows,
-      pagination: {
-        currentPage: page,
-        totalPages: totalPages,
-        totalRecords: totalRecords,
-        limit: limit
-      }
+      data: dataResult.rows
     });
-
   } catch (error) {
     console.error('Erro ao buscar dados:', error);
     res.status(500).json({ error: 'Erro ao buscar dados' });
   }
 });
-
 
 module.exports = router;

@@ -4,37 +4,69 @@ const pool = require('../db');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config/config');
 
-router.get('/graficos/carros/:ano/:mes', async (req, res) => {
+function getDateRange(ano, mes, dia) {
+  // Se mes === "all", retorna todo o ano
+  if (mes === "all") {
+    return {
+      start: new Date(ano, 0, 1),
+      end: new Date(ano, 11, 31, 23, 59, 59, 999)
+    };
+  }
+  // Se dia === "all", retorna o mês inteiro
+  if (dia === "all") {
+    return {
+      start: new Date(ano, mes - 1, 1),
+      end: new Date(ano, mes, 0, 23, 59, 59, 999)
+    };
+  }
+  // Caso ambos sejam numéricos, retorna somente aquele dia (todo o dia)
+  return {
+    start: new Date(ano, mes - 1, dia),
+    end: new Date(ano, mes - 1, dia, 23, 59, 59, 999)
+  };
+}
+
+// Rota para gráficos de carros
+router.get('/graficos/carros/:ano/:mes/:dia', async (req, res) => {
   try {
-    // Extrair o token dos cookies e verificar se ele está presente
     const token = req.cookies.token;
     if (!token) {
       return res.status(401).json({ error: 'Acesso não autorizado' });
     }
 
-    // Decodificar o token para obter `empresa` e `isAdmin`
     const decoded = jwt.verify(token, secretKey);
     const { empresa, isAdmin } = decoded;
-    const { ano } = req.params; // Obter o ano da URL
-    const { mes } = req.params; // Obter o mês da URL
+    let { ano, mes, dia } = req.params;
 
-    // Validação do mês
-    if (!mes || mes < 1 || mes > 12) {
-      return res.status(400).json({ error: 'Mês inválido.' });
-    }
-
-    // Validar o ano, caso seja um valor numérico válido
+    // Validação do ano
     if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
       return res.status(400).json({ error: 'Ano inválido.' });
     }
+    ano = Number(ano);
 
-    // Criar a data de início e fim do mês baseado no ano e mês fornecido
-    const startOfMonth = new Date(ano, mes - 1, 1);  // O primeiro dia do mês
-    const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
-    const endOfMonth = new Date(ano, mes, 0);  // O último dia do mês
-    const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
+    // Se mes não for "all", validar seu valor
+    if(mes !== "all") {
+      mes = Number(mes);
+    }
 
-    // Definir a consulta SQL com filtro de data
+    // Se mes for numérico e dia não for "all", validar o dia
+    if(mes !== "all" && dia !== "all") {
+      dia = Number(dia);
+      const maxDay = new Date(ano, mes, 0).getDate();
+      if(isNaN(dia) || dia < 1 || dia > maxDay) {
+        return res.status(400).json({ error: 'Dia inválido.' });
+      }
+    } else {
+      // Se mes === "all", forçamos dia para "all"
+      dia = "all";
+    }
+
+    // Obter as datas de início e fim com base nos parâmetros
+    const { start, end } = getDateRange(ano, mes, dia);
+    const formattedStart = start.toISOString().split('T')[0];
+    const formattedEnd = end.toISOString().split('T')[0];
+
+    // Consulta SQL (sem alteração na lógica do agrupamento)
     const query = `
       SELECT 
         f.veiculo_interesse AS nome_carro,
@@ -49,64 +81,69 @@ router.get('/graficos/carros/:ano/:mes', async (req, res) => {
       ORDER BY quantidade DESC;
     `;
 
-    // Determinar as empresas a serem consultadas
     let empresas;
     if (isAdmin) {
-      empresas = [1, 2]; // Se o usuário for admin, buscar os dados de ambas as empresas
+      empresas = [1, 2];
     } else {
-      empresas = [empresa]; // Se não for admin, buscar apenas a empresa do usuário
+      empresas = [empresa];
     }
 
-    // Executar as consultas para as empresas selecionadas
     const results = await Promise.all(
-      empresas.map(empresaId => pool.query(query, [empresaId, formattedStartOfMonth, formattedEndOfMonth]))
+      empresas.map(empresaId => pool.query(query, [empresaId, formattedStart, formattedEnd]))
     );
 
-    // Preparar a resposta de acordo com as empresas consultadas
-    const response = empresas.reduce((acc, empresaId, index) => {
+    const responseData = empresas.reduce((acc, empresaId, index) => {
       acc[`empresa${empresaId}`] = results[index].rows;
       return acc;
     }, {});
 
-    // Retornar os dados
-    res.status(200).json(response);
+    res.status(200).json(responseData);
 
   } catch (error) {
-    console.error('Erro ao buscar dados das origens:', error);
-    res.status(500).json({ error: 'Erro ao buscar dados das origens' });
+    console.error('Erro ao buscar dados dos carros:', error);
+    res.status(500).json({ error: 'Erro ao buscar dados dos carros' });
   }
 });
 
-router.get('/graficos/origens/:ano/:mes', async (req, res) => { 
+// Rota para gráficos de origens
+router.get('/graficos/origens/:ano/:mes/:dia', async (req, res) => { 
   try {
-    // Extrair o token dos cookies e verificar se ele está presente
     const token = req.cookies.token;
     if (!token) {
       return res.status(401).json({ error: 'Acesso não autorizado' });
     }
-
-    // Decodificar o token para obter `empresa` e `isAdmin`
     const decoded = jwt.verify(token, secretKey);
     const { empresa, isAdmin } = decoded;
-    const { ano, mes } = req.params;  // Obter o ano e o mês da URL
+    let { ano, mes, dia } = req.params;
 
-    // Validação do mês
-    if (!mes || mes < 1 || mes > 12) {
-      return res.status(400).json({ error: 'Mês inválido.' });
-    }
-
-    // Validar o ano, caso seja um valor numérico válido
+    // Validação do ano
     if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
       return res.status(400).json({ error: 'Ano inválido.' });
     }
+    ano = Number(ano);
 
-    // Criar a data de início e fim do mês baseado no ano e mês fornecido
-    const startOfMonth = new Date(ano, mes - 1, 1);  // O primeiro dia do mês
-    const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
-    const endOfMonth = new Date(ano, mes, 0);  // O último dia do mês
-    const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
+    // Validação do mês (se não for "all")
+    if(mes !== "all") {
+      mes = Number(mes);
+      if(isNaN(mes) || mes < 1 || mes > 12) {
+        return res.status(400).json({ error: 'Mês inválido.' });
+      }
+    }
+    // Se mes for numérico e dia não for "all", validar o dia
+    if(mes !== "all" && dia !== "all") {
+      dia = Number(dia);
+      const maxDay = new Date(ano, mes, 0).getDate();
+      if(isNaN(dia) || dia < 1 || dia > maxDay) {
+        return res.status(400).json({ error: 'Dia inválido.' });
+      }
+    } else {
+      dia = "all";
+    }
 
-    // Definir a consulta SQL com filtro de data
+    const { start, end } = getDateRange(ano, mes, dia);
+    const formattedStart = start.toISOString().split('T')[0];
+    const formattedEnd = end.toISOString().split('T')[0];
+
     const query = `
       SELECT 
         f.origem AS nome_origem,
@@ -119,27 +156,23 @@ router.get('/graficos/origens/:ano/:mes', async (req, res) => {
       ORDER BY quantidade DESC;
     `;
 
-    // Determinar as empresas a serem consultadas
     let empresas;
     if (isAdmin) {
-      empresas = [1, 2]; // Se o usuário for admin, buscar os dados de ambas as empresas
+      empresas = [1, 2];
     } else {
-      empresas = [empresa]; // Se não for admin, buscar apenas a empresa do usuário
+      empresas = [empresa];
     }
 
-    // Executar as consultas para as empresas selecionadas
     const results = await Promise.all(
-      empresas.map(empresaId => pool.query(query, [empresaId, formattedStartOfMonth, formattedEndOfMonth]))
+      empresas.map(empresaId => pool.query(query, [empresaId, formattedStart, formattedEnd]))
     );
 
-    // Preparar a resposta de acordo com as empresas consultadas
-    const response = empresas.reduce((acc, empresaId, index) => {
+    const responseData = empresas.reduce((acc, empresaId, index) => {
       acc[`empresa${empresaId}`] = results[index].rows;
       return acc;
     }, {});
 
-    // Retornar os dados
-    res.status(200).json(response);
+    res.status(200).json(responseData);
 
   } catch (error) {
     console.error('Erro ao buscar dados das origens:', error);
@@ -147,80 +180,160 @@ router.get('/graficos/origens/:ano/:mes', async (req, res) => {
   }
 });
 
+// Rota para gráficos de intenção de compra
+router.get('/graficos/intencao_compra/:ano/:mes/:dia', async (req, res) => { 
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ error: 'Acesso não autorizado' });
+    }
+    const decoded = jwt.verify(token, secretKey);
+    const { empresa, isAdmin } = decoded;
+    let { ano, mes, dia } = req.params;
+
+    // Validação do ano
+    if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
+      return res.status(400).json({ error: 'Ano inválido.' });
+    }
+    ano = Number(ano);
+
+    // Validação do mês (se não for "all")
+    if (mes !== "all") {
+      mes = Number(mes);
+      if (isNaN(mes) || mes < 1 || mes > 12) {
+        return res.status(400).json({ error: 'Mês inválido.' });
+      }
+    }
+    
+    // Se mes for numérico e dia não for "all", validar o dia
+    if (mes !== "all" && dia !== "all") {
+      dia = Number(dia);
+      const maxDay = new Date(ano, mes, 0).getDate();
+      if (isNaN(dia) || dia < 1 || dia > maxDay) {
+        return res.status(400).json({ error: 'Dia inválido.' });
+      }
+    } else {
+      dia = "all";
+    }
+
+    const { start, end } = getDateRange(ano, mes, dia);
+    const formattedStart = start.toISOString().split('T')[0];
+    const formattedEnd = end.toISOString().split('T')[0];
+
+    const query = `
+      SELECT 
+        f.intencao_compra AS nome_intencao,
+        COUNT(*) AS quantidade
+      FROM formulario f
+      WHERE f.empresa = $1
+        AND f.data_cadastro >= $2
+        AND f.data_cadastro <= $3
+        AND intencao_compra is not null
+        AND intencao_compra <> ''
+        AND intencao_compra <> '{}'
+      GROUP BY f.intencao_compra
+      ORDER BY quantidade DESC;
+    `;
+
+    let empresas;
+    if (isAdmin) {
+      empresas = [1, 2];
+    } else {
+      empresas = [empresa];
+    }
+
+    const results = await Promise.all(
+      empresas.map(empresaId => pool.query(query, [empresaId, formattedStart, formattedEnd]))
+    );
+
+    const responseData = empresas.reduce((acc, empresaId, index) => {
+      acc[`empresa${empresaId}`] = results[index].rows;
+      return acc;
+    }, {});
+
+    res.status(200).json(responseData);
+
+  } catch (error) {
+    console.error('Erro ao buscar dados da intenção de compra:', error);
+    res.status(500).json({ error: 'Erro ao buscar dados da intenção de compra' });
+  }
+});
+
+// Rota para gráfico de barras (empresa-diario)
 router.get('/graficos/empresa-diario/:ano/:mes', async (req, res) => {
   try {
-    // Extrair o token dos cookies e verificar se ele está presente
     const token = req.cookies.token;
     if (!token) {
       return res.status(401).json({ error: 'Token não fornecido' });
     }
 
-    // Decodificar o token para obter `empresa` e `isAdmin`
     const decoded = jwt.verify(token, secretKey);
     const { empresa, isAdmin } = decoded;
+    let { ano, mes } = req.params;
 
-    // Receber o ano e o mês da URL
-    const { ano, mes } = req.params;
-
-    // Validação do mês
-    if (!mes || mes < 1 || mes > 12) {
-      return res.status(400).json({ error: 'Mês inválido.' });
-    }
-
-    // Validar o ano
+    // Validação do ano
     if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
       return res.status(400).json({ error: 'Ano inválido.' });
     }
+    ano = Number(ano);
 
-    // Criar a data de início do mês a partir do ano e mês fornecido
-    const startOfMonth = new Date(ano, mes - 1, 1);  // O primeiro dia do mês
-    const formattedStartOfMonth = startOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
+    let start, end, formattedStart, formattedEnd, query;
 
-    // Criar o final do mês baseado no mês informado
-    const endOfMonth = new Date(ano, mes, 0);  // O último dia do mês
-    const formattedEndOfMonth = endOfMonth.toISOString().split('T')[0];  // Formata para "YYYY-MM-DD"
+    if (mes === "all") {
+      // Quando mes for "all", pega o ano inteiro e agrupa por mês
+      start = new Date(ano, 0, 1);
+      end = new Date(ano, 11, 31, 23, 59, 59, 999);
+      formattedStart = start.toISOString().split('T')[0];
+      formattedEnd = end.toISOString().split('T')[0];
 
-    // Verificar se o usuário é admin
-    if (isAdmin) {
-      // Se for admin, fazemos duas consultas, uma para cada empresa (1 e 2)
-      const query = `
+      query = `
+        SELECT 
+          DATE_TRUNC('month', data_cadastro) AS mes,
+          empresa,
+          COUNT(*) AS quantidade
+        FROM formulario
+        WHERE empresa = $1
+          AND data_cadastro >= $2
+          AND data_cadastro <= $3
+        GROUP BY mes, empresa
+        ORDER BY mes;
+      `;
+    } else {
+      // Se mes for um número, valida e pega o mês inteiro, agrupando por dia
+      mes = Number(mes);
+      if (isNaN(mes) || mes < 1 || mes > 12) {
+        return res.status(400).json({ error: 'Mês inválido.' });
+      }
+      start = new Date(ano, mes - 1, 1);
+      end = new Date(ano, mes, 0, 23, 59, 59, 999);
+      formattedStart = start.toISOString().split('T')[0];
+      formattedEnd = end.toISOString().split('T')[0];
+
+      query = `
         SELECT 
           DATE_TRUNC('day', data_cadastro) AS dia,
           empresa,
           COUNT(*) AS quantidade
         FROM formulario
         WHERE empresa = $1
-          AND data_cadastro >= $2  -- Filtra pelos registros do mês especificado
-          AND data_cadastro <= $3  -- Limita até o final do mês
+          AND data_cadastro >= $2
+          AND data_cadastro <= $3
         GROUP BY dia, empresa
         ORDER BY dia;
       `;
+    }
 
-      const empresa1Result = await pool.query(query, [1, formattedStartOfMonth, formattedEndOfMonth]); // Consulta para empresa 1
-      const empresa2Result = await pool.query(query, [2, formattedStartOfMonth, formattedEndOfMonth]); // Consulta para empresa 2
-
-      // Retornar os resultados das duas empresas separadamente
+    // Consulta para admin: retorna os dados para as empresas 1 e 2
+    if (isAdmin) {
+      const empresa1Result = await pool.query(query, [1, formattedStart, formattedEnd]);
+      const empresa2Result = await pool.query(query, [2, formattedStart, formattedEnd]);
       res.status(200).json({
         empresa1: empresa1Result.rows,
         empresa2: empresa2Result.rows,
       });
     } else {
-      // Se não for admin, limitamos a consulta apenas à empresa do usuário
-      const empresaFilterQuery = `
-        SELECT 
-          DATE_TRUNC('day', data_cadastro) AS dia,
-          empresa,
-          COUNT(*) AS quantidade
-        FROM formulario
-        WHERE empresa = $1
-          AND data_cadastro >= $2  -- Filtra pelos registros do mês especificado
-          AND data_cadastro <= $3  -- Limita até o final do mês
-        GROUP BY dia, empresa
-        ORDER BY dia;
-      `;
-
-      const userEmpresaResult = await pool.query(empresaFilterQuery, [empresa, formattedStartOfMonth, formattedEndOfMonth]);
-
+      // Consulta para usuário comum: retorna os dados da empresa do usuário
+      const userEmpresaResult = await pool.query(query, [empresa, formattedStart, formattedEnd]);
       res.status(200).json({
         empresa: userEmpresaResult.rows,
       });
@@ -231,94 +344,148 @@ router.get('/graficos/empresa-diario/:ano/:mes', async (req, res) => {
   }
 });
 
-router.get('/graficos/contagens/:ano/:mes', async (req, res) => {
+
+// Rota para contagens (daily, weekly, monthly) – se o dia for "all", usa a data atual para daily e weekly
+router.get('/graficos/contagens/:ano/:mes/:dia', async (req, res) => {
   try {
-    // Extrair o ano e o mês diretamente dos parâmetros da URL
-    let { ano, mes } = req.params;
+    let { ano, mes, dia } = req.params;
 
-    // Validação do mês
-    if (!mes || mes.length < 1 || mes.length > 2 || isNaN(mes) || parseInt(mes) < 1 || parseInt(mes) > 12) {
-      console.error('Mês inválido:', mes);
-      return res.status(400).json({ error: 'Mês inválido. Deve ser um número entre 01 e 12.' });
+    // Validação do ano
+    if (!ano || isNaN(ano) || ano < 1900 || ano > 2100) {
+      return res.status(400).json({ error: 'Ano inválido.' });
     }
+    ano = Number(ano);
 
-    // Caso o mês tenha apenas 1 dígito, adicionamos o 0 à frente
-    if (mes.length === 1) {
-      mes = `0${mes}`;  // Converte 9 para 09, por exemplo
-    }
-
-    // Obter o mês e o ano atuais
-    const dataAtual = new Date();
-    const mesAtual = dataAtual.getMonth() + 1; // getMonth() retorna de 0 a 11
-    const anoAtual = dataAtual.getFullYear();  // Ano atual
-
-    // Verificar se o mês filtrado é o mês atual
-    const mesNumerico = parseInt(mes, 10);
-    const isMesAtual = mesNumerico === mesAtual && ano === String(anoAtual);
-
-    // Criar as datas de início e fim para o mês com base no ano e mês fornecido
-    const startOfMonth = new Date(ano, mesNumerico - 1, 1); // Início do mês
-    const endOfMonth = new Date(ano, mesNumerico, 0); // Último dia do mês
-
-    // Formatar as datas para o formato ISO
-    const formattedStartOfMonth = startOfMonth.toISOString();
-    const formattedEndOfMonth = endOfMonth.toISOString();
-
-    const token = req.cookies.token;
-    const decoded = jwt.verify(token, secretKey);
-    const empresa = decoded.empresa;
-    const isAdmin = decoded.isAdmin;
-
-    // Definir o filtro de empresa ou visualizar todas se for admin
-    const empresaFilter = isAdmin ? '' : `f.empresa = ${empresa}`;
-
-    let dailyCount = 0;
-
-    if (isMesAtual) {
-      // Definir a consulta SQL para dailyCount apenas se for o mês atual
-      const dailyCountQuery = `
-        SELECT COUNT(*) AS daily_count
-        FROM formulario f
-        WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''} 
-        f.data_cadastro::DATE = CURRENT_DATE  -- Filtra apenas o dia de hoje
-      `;
-
-      const resultDailyCount = await pool.query(dailyCountQuery);
-      dailyCount = parseInt(resultDailyCount.rows[0].daily_count, 10);
+    // Validação do mês: se for "all", forçamos dia para "all"
+    if (mes !== "all") {
+      mes = Number(mes);
+      if (isNaN(mes) || mes < 1 || mes > 12) {
+        return res.status(400).json({ error: 'Mês inválido.' });
+      }
     } else {
-      // Para meses que não são o atual, define dailyCount como 0
-      dailyCount = 0;
+      dia = "all";
     }
 
-    // Consulta para weeklyCount permanece inalterada
+    // Validação do dia (se aplicável)
+    if (mes !== "all" && dia !== "all") {
+      dia = Number(dia);
+      const maxDay = new Date(ano, mes, 0).getDate();
+      if (isNaN(dia) || dia < 1 || dia > maxDay) {
+        return res.status(400).json({ error: 'Dia inválido.' });
+      }
+    } else {
+      dia = "all";
+    }
+
+    // --- Definindo os intervalos para os filtros ---
+    let dailyRange, weeklyRange;
+
+    // Se o parâmetro dia for "all", usamos a data atual para daily e weekly
+    if (dia === "all") {
+      const current = new Date();
+      dailyRange = {
+        start: new Date(current.getFullYear(), current.getMonth(), current.getDate(), 0, 0, 0, 0),
+        end: new Date(current.getFullYear(), current.getMonth(), current.getDate(), 23, 59, 59, 999)
+      };
+      const currentDayOfWeek = current.getDay(); // Domingo=0, Segunda=1, ... Sábado=6
+      const weekStart = new Date(current);
+      weekStart.setDate(current.getDate() - currentDayOfWeek);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(current);
+      weekEnd.setDate(current.getDate() + (6 - currentDayOfWeek));
+      weekEnd.setHours(23, 59, 59, 999);
+      weeklyRange = { start: weekStart, end: weekEnd };
+    } else {
+      // Se dia for numérico, calculamos com base no dia informado
+      dailyRange = {
+        start: new Date(ano, mes - 1, dia, 0, 0, 0, 0),
+        end: new Date(ano, mes - 1, dia, 23, 59, 59, 999)
+      };
+
+      // Calcula a semana do dia informado (supondo semana de domingo a sábado)
+      const selectedDate = new Date(ano, mes - 1, dia);
+      const dayOfWeek = selectedDate.getDay();
+      const weekStart = new Date(selectedDate);
+      weekStart.setDate(selectedDate.getDate() - dayOfWeek);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(selectedDate);
+      weekEnd.setDate(selectedDate.getDate() + (6 - dayOfWeek));
+      weekEnd.setHours(23, 59, 59, 999);
+      weeklyRange = { start: weekStart, end: weekEnd };
+    }
+
+    // Intervalo mensal: se mes for informado (não "all"), consideramos o mês inteiro;
+    // se mes for "all", usamos o ano inteiro
+    let monthlyRange;
+    if (mes !== "all") {
+      monthlyRange = {
+        start: new Date(ano, mes - 1, 1, 0, 0, 0, 0),
+        end: new Date(ano, mes, 0, 23, 59, 59, 999)
+      };
+    } else {
+      monthlyRange = {
+        start: new Date(ano, 0, 1, 0, 0, 0, 0),
+        end: new Date(ano, 11, 31, 23, 59, 59, 999)
+      };
+    }
+
+    // Formatação dos intervalos para ISO (usados nas consultas)
+    const offsetHours = 4;
+    const offsetMs = offsetHours * 60 * 60 * 1000;
+    
+    const formattedDailyStart = new Date(dailyRange.start.getTime() - offsetMs).toISOString();
+    const formattedDailyEnd   = new Date(dailyRange.end.getTime() - offsetMs).toISOString();
+    const formattedWeeklyStart = new Date(weeklyRange.start.getTime() - offsetMs).toISOString();
+    const formattedWeeklyEnd   = new Date(weeklyRange.end.getTime() - offsetMs).toISOString();
+    const formattedMonthlyStart = new Date(monthlyRange.start.getTime() - offsetMs).toISOString();
+    const formattedMonthlyEnd   = new Date(monthlyRange.end.getTime() - offsetMs).toISOString();
+
+    // --- Autenticação e filtro de empresa ---
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ error: 'Token não fornecido' });
+    }
+    const decoded = jwt.verify(token, secretKey);
+    const empresaDecoded = decoded.empresa;
+    const isAdmin = decoded.isAdmin;
+    // Se não for admin, filtra por empresa
+    const empresaFilter = isAdmin ? '' : `f.empresa = ${empresaDecoded}`;
+
+    // --- Consultas ao banco de dados ---
+    // a) Contagem diária: registros do intervalo do dia (seja atual ou informado)
+    const dailyCountQuery = `
+      SELECT COUNT(*) AS daily_count
+      FROM formulario f
+      WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''} 
+            f.data_cadastro >= $1 AND f.data_cadastro <= $2
+    `;
+    const resultDailyCount = await pool.query(dailyCountQuery, [formattedDailyStart, formattedDailyEnd]);
+    const dailyCount = parseInt(resultDailyCount.rows[0].daily_count, 10);
+
+    // b) Contagem semanal: registros do intervalo da semana (baseado no dia atual ou informado)
     const weeklyCountQuery = `
       SELECT COUNT(*) AS weekly_count
       FROM formulario f
       WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''} 
-      f.data_cadastro >= CURRENT_DATE - INTERVAL '7 days'
-      AND f.data_cadastro < CURRENT_DATE  -- Filtrando para a semana passada
-      AND EXTRACT(MONTH FROM f.data_cadastro) = $1
-      AND EXTRACT(YEAR FROM f.data_cadastro) = EXTRACT(YEAR FROM CURRENT_DATE)
+            f.data_cadastro >= $1 AND f.data_cadastro <= $2
     `;
+    const resultWeeklyCount = await pool.query(weeklyCountQuery, [formattedWeeklyStart, formattedWeeklyEnd]);
+    const weeklyCount = parseInt(resultWeeklyCount.rows[0].weekly_count, 10);
 
-    // Consulta para monthlyCount permanece inalterada
+    // c) Contagem mensal: registros do intervalo mensal (mês informado ou do ano, se mes for "all")
     const monthlyCountQuery = `
       SELECT COUNT(*) AS monthly_count
       FROM formulario f
       WHERE ${empresaFilter ? empresaFilter + ' AND ' : ''} 
-      f.data_cadastro >= $1 
-      AND f.data_cadastro <= $2 -- Usa início e fim do mês
+            f.data_cadastro >= $1 AND f.data_cadastro <= $2
     `;
+    const resultMonthlyCount = await pool.query(monthlyCountQuery, [formattedMonthlyStart, formattedMonthlyEnd]);
+    const monthlyCount = parseInt(resultMonthlyCount.rows[0].monthly_count, 10);
 
-    // Executar as consultas para weeklyCount e monthlyCount
-    const weeklyCount = await pool.query(weeklyCountQuery, [mes]);
-    const monthlyCount = await pool.query(monthlyCountQuery, [formattedStartOfMonth, formattedEndOfMonth]);
-
-    // Retornar os dados de contagem no formato esperado
     res.status(200).json({
-      dailyCount: dailyCount,  // Já está definido corretamente
-      weeklyCount: parseInt(weeklyCount.rows[0].weekly_count, 10),
-      monthlyCount: parseInt(monthlyCount.rows[0].monthly_count, 10),
+      dailyCount,
+      weeklyCount,
+      monthlyCount,
     });
   } catch (error) {
     console.error('Erro ao buscar contagens:', error);
@@ -326,37 +493,39 @@ router.get('/graficos/contagens/:ano/:mes', async (req, res) => {
   }
 });
 
+
+// Rota para obter os registros de anos, meses e dias (permanece inalterada)
 router.get('/meses', async (req, res) => {
   try {
-    const token = req.cookies.token; // Autenticação por token, caso necessário
-    const decoded = jwt.verify(token, secretKey); // Decodifica o token
+    const token = req.cookies.token;
+    const decoded = jwt.verify(token, secretKey);
     const empresa = decoded.empresa;
     const isAdmin = decoded.isAdmin;
 
-    // Filtro para restringir resultados à empresa do usuário, caso não seja admin
     const empresaFilter = isAdmin ? '' : `WHERE empresa = ${empresa}`;
 
     const query = `
       SELECT DISTINCT
         EXTRACT(YEAR FROM data_cadastro) AS ano,
-        EXTRACT(MONTH FROM data_cadastro) AS mes
+        EXTRACT(MONTH FROM data_cadastro) AS mes,
+        EXTRACT(DAY FROM data_cadastro) AS dia
       FROM formulario
-      ${empresaFilter} -- Adiciona filtro, se necessário
-      ORDER BY ano, mes; -- Ordena por ano e mês para melhor usabilidade
+      ${empresaFilter}
+      ORDER BY ano, mes, dia;
     `;
 
     const result = await pool.query(query);
 
-    // Formata o resultado para garantir retorno consistente
-    const formattedData = result.rows.map((row) => ({
+    const formattedData = result.rows.map((row) => ({ 
       ano: parseInt(row.ano, 10),
       mes: parseInt(row.mes, 10),
+      dia: parseInt(row.dia, 10)
     }));
 
     res.status(200).json(formattedData);
   } catch (error) {
-    console.error('Erro ao buscar meses e anos:', error);
-    res.status(500).json({ error: 'Erro ao buscar meses e anos' });
+    console.error('Erro ao buscar dias, meses e anos:', error);
+    res.status(500).json({ error: 'Erro ao buscar dias, meses e anos' });
   }
 });
 

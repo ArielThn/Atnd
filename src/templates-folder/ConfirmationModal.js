@@ -98,6 +98,8 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, registro, onUpdate }) =
         <div className="modal-info">
           <p><strong>Vendedor:</strong> {registro?.nome_vendedor}</p>
           <p><strong>Carro:</strong> {registro?.carro}</p>
+          <p><strong>Motivo:</strong> {registro?.descricao}</p> {/* Exibe a placa do carro */}
+          <p><strong>Descrição:</strong> {registro?.observacao}</p> {/* Exibe a placa do carro */}
           <p><strong>Placa:</strong> {registro?.placa}</p> {/* Exibe a placa do carro */}
         </div>
         <div className="modal-actions">

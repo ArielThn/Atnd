@@ -7,6 +7,7 @@ const ALGORITHM = 'aes-256-cbc';
 
 // Carregar a chave de criptografia
 const { key } = JSON.parse(fs.readFileSync('C:\\Users\\jonathan.alexandre\\Documents\\secret_key.txt', 'utf-8'));
+// const { key } = JSON.parse(fs.readFileSync('C:\\Users\\jonas.haruo\\Documents\\a\\b\\b.txt', 'utf-8'));
 
 // Função para descriptografar texto
 function decrypt(encryptedText) {

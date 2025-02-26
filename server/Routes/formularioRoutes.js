@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Rota para buscar registros com filtros por mês e empresa com paginação
 router.get('/formularios', authenticate, async (req, res) => {
-  let { month, company, page } = req.query;
+  let { data_inicio, data_fim, company, page } = req.query;
 
   // Parsing e validação do parâmetro 'page'
   page = parseInt(page, 10);
@@ -14,18 +14,10 @@ router.get('/formularios', authenticate, async (req, res) => {
     page = 1; // Valor padrão se 'page' não for válido
   }
 
-  const userEmpresa = req.user.empresa; // Pega a empresa do usuário do tokensearc
-  const isAdmin = req.user.isAdmin; // Assume que o token contém a informação de permissão
+  const userEmpresa = req.user.empresa; // Empresa do usuário autenticado
+  const isAdmin = req.user.isAdmin; // Verificação se o usuário possui permissão de admin
   const limit = 15; // Limite de registros por página
   const offset = (page - 1) * limit; // Calcula o deslocamento baseado na página atual
-
-  // Validação de 'month' para garantir que é um valor numérico válido
-  if (month !== undefined) {
-    month = parseInt(month, 10);
-    if (isNaN(month) || month < 0 || month > 12) {
-      return res.status(400).json({ error: 'Mês inválido. O valor deve ser entre 0 e 12.' });
-    }
-  }
 
   try {
     // Construção da consulta principal com filtros
@@ -35,11 +27,19 @@ router.get('/formularios', authenticate, async (req, res) => {
     let values = [];
     let countValues = [];
 
-    // Filtro por mês
-    if (month !== undefined && month !== 0) {
-      conditions.push(`EXTRACT(MONTH FROM data_cadastro) = $${values.length + 1}`);
-      values.push(month);
-      countValues.push(month);
+    // Filtro por período de datas usando data_inicio e data_fim
+    if (data_inicio && data_fim) {
+      conditions.push(`data_cadastro BETWEEN $${values.length + 1} AND $${values.length + 2}`);
+      values.push(`${data_inicio} 00:00:00`, `${data_fim} 23:59:59`);
+      countValues.push(`${data_inicio} 00:00:00`, `${data_fim} 23:59:59`);
+    } else if (data_inicio) {
+      conditions.push(`data_cadastro >= $${values.length + 1}`);
+      values.push(`${data_inicio} 00:00:00`);
+      countValues.push(`${data_inicio} 00:00:00`);
+    } else if (data_fim) {
+      conditions.push(`data_cadastro <= $${values.length + 1}`);
+      values.push(`${data_fim} 23:59:59`);
+      countValues.push(`${data_fim} 23:59:59`);
     }
 
     // Filtro por empresa
@@ -53,7 +53,7 @@ router.get('/formularios', authenticate, async (req, res) => {
       countValues.push(company);
     }
 
-    // Adiciona as condições às consultas
+    // Adiciona as condições às consultas, se houver
     if (conditions.length > 0) {
       const whereClause = ' WHERE ' + conditions.join(' AND ');
       query += whereClause;
@@ -85,10 +85,22 @@ router.get('/formularios', authenticate, async (req, res) => {
   }
 });
 
+
 // Rota para atualizar um formulário
 router.put('/formularios/:id', async (req, res) => {
   const { id } = req.params;
-  const { nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, data_cadastro } = req.body;
+  let { nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, data_cadastro } = req.body;
+
+  // Define o offset de 4 horas em milissegundos
+  const offsetMs = 4 * 60 * 60 * 1000;
+
+  // Converte a data recebida e subtrai 4 horas
+  const data = new Date(data_cadastro);
+  if (isNaN(data.getTime())) {
+    return res.status(400).json({ error: 'Data inválida' });
+  }
+  data_cadastro = new Date(data.getTime() - offsetMs).toISOString();
+
   try {
     const result = await pool.query(
       `UPDATE formulario SET 

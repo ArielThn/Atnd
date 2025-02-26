@@ -19,7 +19,7 @@ const formatarHorario = (dataHora) => {
   const horas = String(date.getHours()).padStart(2, '0');
   const minutos = String(date.getMinutes()).padStart(2, '0');
 
-  return `${ano}-${mes}-${dia} ${horas}:${minutos}`;
+  return `${dia}-${mes}-${ano} ${horas}:${minutos}`;
 };
 
 const RegistrosSaida = () => {
@@ -82,6 +82,8 @@ const RegistrosSaida = () => {
           <tr>
             <th>Vendedor</th>
             <th>Carro</th>
+            <th>Motivo</th>
+            <th>Descrição</th>
             <th>Horário</th>
             <th>Ação</th>
           </tr>
@@ -96,6 +98,12 @@ const RegistrosSaida = () => {
               <tr key={registro.id_saida || index} className="registro-row">
                 <td>{registro.nome_vendedor}</td>
                 <td>{registro.carro}</td>
+                <td>{registro.descricao}</td>
+                <td>
+                  {registro.observacao && registro.observacao.length > 30
+                    ? registro.observacao.substring(0, 20) + "..."
+                    : registro.observacao}
+                </td>                
                 <td>{formatarHorario(registro.data_horario)}</td>
                 <td>
                   <button

@@ -314,6 +314,7 @@ const SaidaForm = () => {
                 type="text"
                 name="nomeVendedor"
                 list="vendedores-list"
+                autoComplete="off"
                 value={formData.nomeVendedor}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, nomeVendedor: e.target.value }))

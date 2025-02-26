@@ -5,6 +5,17 @@ import '../css-folder/forms.css';
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
+// Função auxiliar para obter a data/hora atual formatada para "YYYY-MM-DDTHH:MM"
+const getCurrentDateTime = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 function ClientForm({ isAdmin }) {
   const [origins, setOrigins] = useState([]);
   const [intentions, setIntentions] = useState([]);
@@ -18,18 +29,7 @@ function ClientForm({ isAdmin }) {
   const [acompanhantes, setAcompanhantes] = useState('');
   const [veiculoInteresse, setVeiculoInteresse] = useState('');
   const [vendedorSelecionado, setVendedorSelecionado] = useState('');
-  const [horario, setHorario] = useState(() => {
-    // Obter a data e hora atuais no formato YYYY-MM-DDTHH:MM
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // Ajusta o mês para dois dígitos
-    const day = String(now.getDate()).padStart(2, '0'); // Ajusta o dia para dois dígitos
-    const hours = String(now.getHours()).padStart(2, '0'); // Ajusta a hora para dois dígitos
-    const minutes = String(now.getMinutes()).padStart(2, '0'); // Ajusta os minutos para dois dígitos
-    
-    // Formatar para o formato 'YYYY-MM-DDTHH:MM'
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  });
+  const [horario, setHorario] = useState(getCurrentDateTime);
   const [newOrigem, setNewOrigem] = useState('');
   const [showOrigemInput, setShowOrigemInput] = useState(false);
   const [newIntencao, setNewIntencao] = useState('');
@@ -62,16 +62,15 @@ function ClientForm({ isAdmin }) {
     setTelefone('');
     setCpf('');
     setOrigem('');
-    setIntencaoCompra([]);
+    setIntencaoCompra('');
     setAcompanhantes('');
     setVeiculoInteresse('');
     setVendedorSelecionado('');
-    setHorario('');
+    setHorario(getCurrentDateTime());
   };
 
   const deletarVeiculoInteresse = async (id) => {
     try {
-      // Enviar a requisição DELETE para o servidor
       const response = await fetch(`${apiUrl}/api/veiculos/${id}`, {
         method: 'DELETE',
         headers: {
@@ -80,16 +79,16 @@ function ClientForm({ isAdmin }) {
       });
   
       if (!response.ok) {
-        throw new Error('Erro ao deletar origem');
+        throw new Error('Erro ao deletar veículo');
       }
       setVehicles((prevVehicles) => prevVehicles.filter((vehicle) => vehicle.id !== id));
     } catch (error) {
-      console.error('Falha na exclusão da origem:', error);
+      console.error('Falha na exclusão do veículo:', error);
     }
-  }
+  };
+
   const deletarOrigem = async (id) => {
     try {
-      // Enviar a requisição DELETE para o servidor
       const response = await fetch(`${apiUrl}/api/origem/${id}`, {
         method: 'DELETE',
         headers: {
@@ -101,35 +100,31 @@ function ClientForm({ isAdmin }) {
         throw new Error('Erro ao deletar origem');
       }
   
-      // Atualizar o estado removendo a origem deletada
       setOrigins((prevOrigins) => prevOrigins.filter((origin) => origin.id !== id));
     } catch (error) {
       console.error('Falha na exclusão da origem:', error);
     }
   };
-  
-const deletarIntencaoCompra = async (id) => {
-  try {
-    // Enviar a requisição DELETE para a rota de intenção de compra
-    const response = await fetch(`${apiUrl}/api/intencao-compra/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
 
-    if (!response.ok) {
-      throw new Error('Erro ao deletar intenção de compra');
+  const deletarIntencaoCompra = async (id) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/intencao-compra/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erro ao deletar intenção de compra');
+      }
+      setIntentions((prevIntencoes) => prevIntencoes.filter((intencao) => intencao.id !== id));
+      toast.success('Intenção de compra deletada com sucesso!');
+    } catch (error) {
+      console.error('Falha na exclusão da intenção de compra:', error);
     }
-    // Atualizar o estado removendo a intenção de compra deletada
-    setIntentions((prevIntencoes) => prevIntencoes.filter((intencao) => intencao.id !== id));
-    toast.success('Intenção de compra deletada com sucesso!');
-  } catch (error) {
-    console.error('Falha na exclusão da intenção de compra:', error);
-  }
-};
+  };
 
-  
   useEffect(() => {
     async function fetchOrigins() {
       try {
@@ -188,7 +183,7 @@ const deletarIntencaoCompra = async (id) => {
 
   const addNewOrigem = async () => {
     try {
-      const upper = newOrigem.toUpperCase()
+      const upper = newOrigem.toUpperCase();
       const response = await fetch(`${apiUrl}/api/origem`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -212,8 +207,7 @@ const deletarIntencaoCompra = async (id) => {
 
   const addNewIntencao = async () => {
     try {
-      const upper = newIntencao.toUpperCase()
-
+      const upper = newIntencao.toUpperCase();
       const response = await fetch(`${apiUrl}/api/intencao-compra`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -243,8 +237,7 @@ const deletarIntencaoCompra = async (id) => {
 
   const addNewVeiculo = async () => {
     try {
-      const upper = newVeiculo.toUpperCase()
-
+      const upper = newVeiculo.toUpperCase();
       const response = await fetch(`${apiUrl}/api/veiculos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -272,20 +265,29 @@ const deletarIntencaoCompra = async (id) => {
     }
   };
 
+  const removeQuotes = (value) => {
+    return typeof value === 'string' ? value.replace(/"/g, '') : value;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Remove aspas e caracteres especiais do nome
+    const cleanNome = removeQuotes(nome.trimEnd())
+      .replace(/[^\w\sÀ-ÿ]/g, ''); // Remove qualquer caractere que não seja alfanumérico, espaço ou letras acentuadas
+  
     const formData = {
-      nome,
-      telefone,
-      cpf,
-      origem,
-      intencaoCompra,
-      acompanhantes,
-      veiculoInteresse,
-      vendedor: vendedorSelecionado,
-      horario,
+      nome: cleanNome,
+      telefone: removeQuotes(telefone.trimEnd()),
+      cpf: removeQuotes(cpf.trimEnd()),
+      origem: removeQuotes(origem.trimEnd()),
+      intencaoCompra: removeQuotes(intencaoCompra.trimEnd()),
+      acompanhantes: removeQuotes(acompanhantes.trimEnd()),
+      veiculoInteresse: removeQuotes(veiculoInteresse.trimEnd()),
+      vendedor: removeQuotes(vendedorSelecionado.trimEnd()),
+      horario: removeQuotes(horario.trimEnd()),
     };
-
+  
     try {
       const response = await fetch(`${apiUrl}/api/clientes`, {
         method: 'POST',
@@ -295,7 +297,7 @@ const deletarIntencaoCompra = async (id) => {
         credentials: 'include',
         body: JSON.stringify(formData),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
         toast.success('Dados cadastrados com sucesso!', {
@@ -320,28 +322,27 @@ const deletarIntencaoCompra = async (id) => {
 
   const handleNumericInput = (e, setValue) => {
     const { value } = e.target;
-    // Permite apenas números, removendo quaisquer caracteres não numéricos
     const numericValue = value.replace(/[^0-9]/g, '');
     setValue(numericValue);
   };
+
   const formatTelefone = (value) => {
-    // Remove tudo que não seja número
     const numericValue = value.replace(/\D/g, '');
-    // Formata o valor conforme o padrão
     const formattedValue = numericValue
       .replace(/^(\d{2})(\d)/, '($1) $2')
       .replace(/(\d{5})(\d)/, '$1-$2')
-      .substring(0, 15); // Limite máximo de caracteres
+      .substring(0, 15);
     return formattedValue;
   };
+
   const formatCpf = (value) => {
-    const numericValue = value.replace(/\D/g, ''); // Remover tudo o que não for número
-    if (numericValue.length <= 11) { // CPF
+    const numericValue = value.replace(/\D/g, '');
+    if (numericValue.length <= 11) {
       return numericValue
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    } else { // CNPJ
+    } else {
       return numericValue
         .replace(/(\d{2})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
@@ -349,64 +350,61 @@ const deletarIntencaoCompra = async (id) => {
         .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
     }
   };
-  
+
   return (
-      <div className="flex justify-center items-center bg-white py-8 px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full">
-          <h1 className="text-center text-[#001e50] mb-1 text-3xl font-bold pb-12">Cadastro de Cliente</h1>
-    
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
-              <h3 className="text-[#001e50] text-xl font-bold">1. Dados Básicos</h3>
-              <label className="flex flex-col">
-                Nome *
-                <input
-                  type="text"
-                  placeholder="Insira o Nome do Cliente"
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  maxLength={50}
-                  className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
-                />
-              </label>
-              <label className="flex flex-col">
-                Telefone *
-                <input
-                  type="text"
-                  placeholder="Insira o Telefone do Cliente"
-                  required
-                  value={telefone}
-                  onChange={(e) => setTelefone(formatTelefone(e.target.value))}
-                  maxLength={15} // Limite correspondente à máscara
-                  className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
-                />
-              </label>
-              <label className="flex flex-col">
-                CPF *
-                <input
-                  type="text"
-                  placeholder="Insira o CPF do Cliente"
-                  required
-                  value={cpf} 
-                  onChange={(e) => setCpf(formatCpf(e.target.value))}
-                  maxLength={18} // Limite de caracteres no formato "XXX.XXX.XXX-XX"
-                  className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
-                />
-              </label>
-            </div>
-    
-            <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
-              <h3 className="text-[#001e50] text-xl font-bold">2. Origem *</h3>
-              <div className="flex flex-col space-y-4">
+    <div className="flex justify-center items-center bg-white py-8 px-4">
+      <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full">
+        <h1 className="text-center text-[#001e50] mb-1 text-3xl font-bold pb-12">Cadastro de Cliente</h1>
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
+            <h3 className="text-[#001e50] text-xl font-bold">1. Dados Básicos</h3>
+            <label className="flex flex-col">
+              Nome *
+              <input
+                type="text"
+                placeholder="Insira o Nome do Cliente"
+                required
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                maxLength={50}
+                className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
+              />
+            </label>
+            <label className="flex flex-col">
+              Telefone *
+              <input
+                type="text"
+                placeholder="Insira o Telefone do Cliente"
+                required
+                value={telefone}
+                onChange={(e) => setTelefone(formatTelefone(e.target.value))}
+                maxLength={15}
+                className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
+              />
+            </label>
+            <label className="flex flex-col">
+              CPF *
+              <input
+                type="text"
+                placeholder="Insira o CPF do Cliente"
+                required
+                value={cpf}
+                onChange={(e) => setCpf(formatCpf(e.target.value))}
+                maxLength={18}
+                className="p-3 border border-gray-300 rounded-md text-base text-gray-800"
+              />
+            </label>
+          </div>
+
+          <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
+            <h3 className="text-[#001e50] text-xl font-bold">2. Origem *</h3>
+            <div className="flex flex-col space-y-4">
               {origins.map((origin) => (
                 <label className="flex items-center justify-between px-4" key={origin.id}>
                   <span className="text-gray-800 flex items-center space-x-2">
                     {isAdmin && (
-                      <span
-                        className="text-red-700 cursor-pointer"
-                        onClick={() => deletarOrigem(origin.id)}
-                      >
+                      <span className="text-red-700 cursor-pointer" onClick={() => deletarOrigem(origin.id)}>
                         X
                       </span>
                     )}
@@ -418,58 +416,51 @@ const deletarIntencaoCompra = async (id) => {
                     value={origin.descricao}
                     required
                     checked={origem === origin.descricao}
-                    onChange={(e) => {
-                      setOrigem(e.target.value);
-                    }}
+                    onChange={(e) => setOrigem(e.target.value)}
                     className="mr-5 cursor-pointer"
                   />
                 </label>
               ))}
             </div>
-              {(
-                showOrigemInput ? (
-                  <div ref={origemInputRef} className="flex items-center space-x-4 mt-4">
-                    <input
-                      type="text"
-                      placeholder="Nova Origem"
-                      value={newOrigem}
-                      onChange={(e) => setNewOrigem(e.target.value)}
-                      maxLength={30}
-                      className="flex-grow p-2 border border-gray-300 rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={addNewOrigem}
-                      className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
-                    >
-                      Salvar
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowOrigemInput(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
-                  >
-                    Adicionar Origem
-                  </button>
-                )
-              )}
-            </div>
-    
-            {origem && origem !== 'ANIVERSARIANTE' && (
-              <>
-            <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
-              <h3 className="text-[#001e50] text-xl font-bold">3. Intenção de Compra *</h3>
+            {showOrigemInput ? (
+              <div ref={origemInputRef} className="flex items-center space-x-4 mt-4">
+                <input
+                  type="text"
+                  placeholder="Nova Origem"
+                  value={newOrigem}
+                  onChange={(e) => setNewOrigem(e.target.value)}
+                  maxLength={30}
+                  className="flex-grow p-2 border border-gray-300 rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={addNewOrigem}
+                  className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
+                >
+                  Salvar
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowOrigemInput(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+              >
+                Adicionar Origem
+              </button>
+            )}
+          </div>
+
+          {origem && origem !== 'ANIVERSARIANTE' && (
+            <>
+              <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
+                <h3 className="text-[#001e50] text-xl font-bold">3. Intenção de Compra *</h3>
                 <div className="flex flex-col space-y-4">
                   {intentions.map((intention) => (
                     <label className="flex items-center justify-between px-4" key={intention.id}>
                       <span className="text-gray-800 flex items-center space-x-2">
                         {isAdmin && (
-                          <span
-                            className="text-red-700 cursor-pointer"
-                            onClick={() => deletarIntencaoCompra(intention.id)}
-                          >
+                          <span className="text-red-700 cursor-pointer" onClick={() => deletarIntencaoCompra(intention.id)}>
                             X
                           </span>
                         )}
@@ -487,49 +478,47 @@ const deletarIntencaoCompra = async (id) => {
                     </label>
                   ))}
                 </div>
-                { (
-                  showIntencaoInput ? (
-                    <div ref={intencaoInputRef} className="flex items-center space-x-4 mt-4">
-                      <input
-                        type="text"
-                        placeholder="Nova Intenção"
-                        value={newIntencao}
-                        onChange={(e) => setNewIntencao(e.target.value)}
-                        maxLength={30}
-                        className="flex-grow p-2 border border-gray-300 rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={addNewIntencao}
-                        className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
-                      >
-                        Salvar
-                      </button>
-                    </div>
-                  ) : (
+                {showIntencaoInput ? (
+                  <div ref={intencaoInputRef} className="flex items-center space-x-4 mt-4">
+                    <input
+                      type="text"
+                      placeholder="Nova Intenção"
+                      value={newIntencao}
+                      onChange={(e) => setNewIntencao(e.target.value)}
+                      maxLength={30}
+                      className="flex-grow p-2 border border-gray-300 rounded-md"
+                    />
                     <button
                       type="button"
-                      onClick={() => setShowIntencaoInput(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+                      onClick={addNewIntencao}
+                      className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
                     >
-                      Adicionar Intenção
+                      Salvar
                     </button>
-                  )
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowIntencaoInput(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+                  >
+                    Adicionar Intenção
+                  </button>
                 )}
               </div>
-  
+
               <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
                 <h3 className="text-[#001e50] text-xl font-bold">4. Quantidade de Acompanhantes</h3>
                 <input
-                  type="text" // Usar 'text' para controle da entrada
+                  type="text"
                   placeholder="Digite o número de acompanhantes"
                   value={acompanhantes}
                   onChange={(e) => handleNumericInput(e, setAcompanhantes)}
-                  maxLength={1} // Limite de 2 caracteres, por exemplo
+                  maxLength={1}
                   className="p-2 border border-gray-300 rounded-md text-base text-gray-800 w-full"
                 />
               </div>
-  
+
               <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
                 <h3 className="text-[#001e50] text-xl font-bold">5. Veículo de Interesse *</h3>
                 <select
@@ -546,98 +535,96 @@ const deletarIntencaoCompra = async (id) => {
                     </option>
                   ))}
                 </select>
-                {isAdmin && (
+                {isAdmin &&
                   vehicles.map((carro) => (
                     <label className="flex items-center justify-between px-4" key={carro.id}>
                       <span className="text-gray-800 flex items-center space-x-2">
                         {isAdmin && (
-                          <span
-                            className="text-red-700 cursor-pointer"
-                            onClick={() => deletarVeiculoInteresse(carro.id)} // Substituí origin.id por carro.id
-                          >
+                          <span className="text-red-700 cursor-pointer" onClick={() => deletarVeiculoInteresse(carro.id)}>
                             X
                           </span>
                         )}
                         <span>{carro.descricao}</span>
                       </span>
                     </label>
-                  ))
-                )}
-
-                {(
-                  showVeiculoInput ? (
-                    <div ref={veiculoInputRef} className="flex items-center space-x-4 mt-4">
-                      <input
-                        type="text"
-                        placeholder="Novo Veículo"
-                        value={newVeiculo}
-                        onChange={(e) => setNewVeiculo(e.target.value)}
-                        className="flex-grow p-2 border border-gray-300 rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={addNewVeiculo}
-                        className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
-                      >
-                        Salvar
-                      </button>
-                    </div>
-                  ) : (
+                  ))}
+                {showVeiculoInput ? (
+                  <div ref={veiculoInputRef} className="flex items-center space-x-4 mt-4">
+                    <input
+                      type="text"
+                      placeholder="Novo Veículo"
+                      value={newVeiculo}
+                      onChange={(e) => setNewVeiculo(e.target.value)}
+                      className="flex-grow p-2 border border-gray-300 rounded-md"
+                    />
                     <button
                       type="button"
-                      onClick={() => setShowVeiculoInput(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+                      onClick={addNewVeiculo}
+                      className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
                     >
-                      Adicionar Veículo
+                      Salvar
                     </button>
-                  )
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowVeiculoInput(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+                  >
+                    Adicionar Veículo
+                  </button>
                 )}
               </div>
-  
+
               <div className="space-y-4">
                 <h3 className="text-[#001e50] text-xl font-bold">6. Vendedor *</h3>
                 <div className="relative w-full">
                   <label htmlFor="nomeVendedor" className="block text-gray-700 font-medium mb-1">
                     Nome do Vendedor
                   </label>
-                  <select
+                  <input
+                    type="text"
                     id="nomeVendedor"
                     name="nomeVendedor"
+                    list="vendedores-list"
                     value={vendedorSelecionado}
                     onChange={(e) => setVendedorSelecionado(e.target.value)}
-                    required
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
-                  >
-                    <option value="" disabled>Selecione o nome do vendedor</option>
-                    {Array.isArray(vendedores) && vendedores.map((vendedor) => (
-                      <option key={vendedor.id} value={vendedor.nome_vendedor}>
-                        {vendedor.nome_vendedor}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              </>
-          )}
-              {/* Nova div com o campo de data */}
-              <div className="space-y-4">
-                <h3 className="text-[#001e50] text-xl font-bold">7. Data e Hora *</h3>
-                <div className="relative w-full">
-                  <label htmlFor="data" className="block text-gray-700 font-medium mb-1">
-                    Selecione a Data e Hora
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="data"
-                    name="data"
-                    value={horario} // Aqui você controla o valor da data e hora
-                    onChange={(e) => setHorario(e.target.value)} // Atualiza o estado com a data e hora selecionada
+                    placeholder="Selecione ou digite o nome do vendedor"
                     required
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
                   />
+                  <datalist id="vendedores-list">
+                    {Array.isArray(vendedores) &&
+                      vendedores.map((vendedor) => (
+                        <option key={vendedor.id} value={vendedor.nome_vendedor}>
+                          {vendedor.nome_vendedor}
+                        </option>
+                      ))}
+                  </datalist>
                 </div>
               </div>
-  
+
+            </>
+          )}
+
+          <div className="space-y-4">
+            <h3 className="text-[#001e50] text-xl font-bold">7. Data e Hora *</h3>
+            <div className="relative w-full">
+              <label htmlFor="data" className="block text-gray-700 font-medium mb-1">
+                Selecione a Data e Hora
+              </label>
+              <input
+                type="datetime-local"
+                id="data"
+                name="data"
+                value={horario}
+                onChange={(e) => setHorario(e.target.value)}
+                required
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
             className="bg-green-600 text-white w-full py-3 rounded-lg font-semibold hover:bg-green-700"
@@ -648,8 +635,6 @@ const deletarIntencaoCompra = async (id) => {
       </div>
     </div>
   );
-  
-  
 }
 
 export default ClientForm;
