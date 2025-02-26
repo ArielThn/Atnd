@@ -12,9 +12,26 @@ const syncUsuariosAtivos = async () => {
         // Conexão com Oracle e consulta
         oracleConn = await connectOracle();
         const query = `
-            SELECT usuario, nome, ativo
-            FROM TRESCINCO.ger_usuario
-            WHERE ativo = 'S';
+            SELECT DISTINCT
+                FV.EMPRESA,
+                FV.VENDEDOR,
+                FV.DEPARTAMENTO,
+                FV.NOME AS NOME_VENDEDOR,
+                FV.USUARIO,
+                FV.CPF,
+                FV.ATIVO,
+                GS.GERENTE,
+                GU.NOME AS NOME_GERENTE
+            FROM
+                TRESCINCO.FAT_VENDEDOR FV
+                LEFT OUTER JOIN TRESCINCO.GER_USUARIO GS ON GS.USUARIO = FV.USUARIO
+                LEFT OUTER JOIN TRESCINCO.GER_USUARIO GU ON GS.GERENTE = GU.USUARIO
+            WHERE 
+                FV.EMPRESA IN (1, 2)
+                AND FV.DEPARTAMENTO IN (10, 15, 20)
+                AND FV.ATIVO = 'S'
+            ORDER BY
+                FV.NOME ASC
         `;
         const result = await oracleConn.execute(query);
 

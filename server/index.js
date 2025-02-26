@@ -25,7 +25,6 @@ const saidaRoutes = require('./Routes/saidaRoutes');
 const carrosRoutes = require('./Routes/carrosRoutes');
 const motivosRoutes = require('./Routes/motivosRoutes');
 const vendedoresRoutes = require('./Routes/usuariosRoutes');
-const usuariosRoutes = require('./Routes/usuariosRoutes');
 const motivosSaidaRoutes = require('./Routes/motivosSaidaRoutes');
 const carrosRoutesCadastrar = require('./Routes/carrosRoutesCadastrar');
 const deletarCliente = require('./Routes/deletarCliente');
@@ -77,7 +76,6 @@ try {
   app.use('/api', saidaRoutes);
   app.use('/api', carrosRoutes);
   app.use('/api', motivosRoutes);
-  app.use('/api', usuariosRoutes);
   app.use('/', vendedoresRoutes);
   app.use('/api/motivos-saida', motivosSaidaRoutes);
   app.use('/api', carrosRoutesCadastrar);
