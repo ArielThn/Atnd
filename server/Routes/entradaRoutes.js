@@ -268,6 +268,7 @@ router.get('/registros-saida', verifyToken, async (req, res) => {
       WHERE rs.id_empresa = $1
         AND rs.data_retorno IS NULL
         AND rs.cnh_foto IS NOT NULL
+        AND rs.cnh_foto <> ''
         AND rs.termo_responsabilidade IS NOT NULL
         AND rs.termo_responsabilidade <> '';
     `;

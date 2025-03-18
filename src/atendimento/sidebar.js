@@ -22,7 +22,7 @@ function Sidebar({ onLogout, onChangeComponent }) {
     .find((row) => row.startsWith('token='))
     ?.split('=')[1];
 
-  const decoded = token ? jwtDecode(token) : null;
+  const decoded = token ? jwtDecode(token) : null;  
 
   // Sincronizar visibilidade do texto com transição
   useEffect(() => {
@@ -67,13 +67,6 @@ function Sidebar({ onLogout, onChangeComponent }) {
             <FaHome className="mr-2 text-[28px]" />
             {showText && <span>Gráficos</span>}
           </li>
-          {/* <li
-            onClick={() => onChangeComponent('grafico testdrive')}
-            className="flex items-center justify-center w-full py-3 cursor-pointer text-white text-base font-medium transition-colors duration-200 hover:bg-[#00509e] rounded-lg"
-          >
-            <FaHome className="mr-2 text-[28px]" />
-            {showText && <span>Gráficos</span>}
-          </li> */}
         
           <li
             onClick={() => onChangeComponent('registros')}

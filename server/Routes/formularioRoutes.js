@@ -101,7 +101,24 @@ router.put('/formularios/:id', async (req, res) => {
   }
   data_cadastro = new Date(data.getTime() - offsetMs).toISOString();
 
+  // Consulta na tabela vendedores para obter os dados do vendedor selecionado
+  let seller;
   try {
+    const sellerResult = await pool.query(
+      "SELECT vendedor, nome_vendedor FROM vendedor WHERE nome_vendedor = $1",
+      [vendedor]
+    );
+    if (sellerResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
+    seller = sellerResult.rows[0];
+  } catch (error) {
+    console.error("Erro ao buscar vendedor:", error);
+    return res.status(500).json({ error: 'Erro ao buscar vendedor' });
+  }
+
+  try {
+    // Atualiza a tabela formulário incluindo o novo campo vendedor_codigo
     const result = await pool.query(
       `UPDATE formulario SET 
           nome = $1, 
@@ -110,11 +127,23 @@ router.put('/formularios/:id', async (req, res) => {
           origem = $4, 
           intencao_compra = $5, 
           veiculo_interesse = $6,
-          vendedor = $7,
-          data_cadastro = $8
-       WHERE id = $9
+          vendedor = $7,         -- Aqui é atribuído o nome do vendedor (vendedor_nome)
+          vendedor_codigo = $8,  -- Aqui é atribuído o código do vendedor (vendedor)
+          data_cadastro = $9
+       WHERE id = $10
        RETURNING *`,
-      [nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, data_cadastro, id]
+      [
+        nome,
+        telefone,
+        cpf,
+        origem,
+        intencao_compra,
+        veiculo_interesse,
+        vendedor, // Nome do vendedor (campo "vendedor_nome" da tabela vendedores)
+        seller.vendedor,      // Código do vendedor (campo "vendedor" da tabela vendedores)
+        data_cadastro,
+        id,
+      ]
     );
 
     // Verifica se o registro foi atualizado

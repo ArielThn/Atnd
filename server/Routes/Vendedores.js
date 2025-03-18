@@ -11,7 +11,7 @@ router.get('/vendedores', authenticate, async (req, res) => {
 
     // Busca vendedores ativos que pertençam à mesma empresa
     const result = await pool.query(
-      'SELECT * FROM vendedor WHERE ativo = true AND empresa = $1',
+      'SELECT nome_vendedor, vendedor, empresa FROM vendedor WHERE ativo = true AND empresa = $1 ORDER BY nome_vendedor ASC',
       [empresaUsuario]
     );
 

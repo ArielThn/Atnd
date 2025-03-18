@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../css-folder/RegistrosSaida.css';
 import { ToastContainer, toast } from 'react-toastify';
-import ConfirmationModal from './ConfirmationModal';
 import 'react-toastify/dist/ReactToastify.css';
+import ConfirmationModal from './ConfirmationModal';
 
 const apiUrl = process.env.REACT_APP_API_URL;
 

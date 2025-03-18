@@ -1,55 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
-import Sidebar from './templates-folder/sidebar';
-import Grafico from './templates-folder/grafico';
-import Registros from './templates-folder/registros'; // Registros gerais
-import ClientForm from './templates-folder/FormsComponent';
-import SaidaForm from './templates-folder/saida-carros';
-import ConfirmacaoModal from './templates-folder/ConfirmationModal';
-import RegistrosSaida from './templates-folder/RegistrosSaida'; // Registros específicos de saída
-import AdicionarMotivos from './templates-folder/cadastro-motivos'; // Importa o componente
-import GraficoTestDrive from './templates-folder/grafico_testdrive';
+import Sidebar from './atendimento/sidebar';
+import Grafico from './atendimento/grafico';
+import Registros from './atendimento/registros';
+import ClientForm from './atendimento/FormsComponent';
+import SaidaForm from './atendimento/saida-carros';
+import RegistrosSaida from './atendimento/RegistrosSaida';
+import AdicionarMotivos from './atendimento/cadastro-motivos';
+import GraficoTestDrive from './atendimento/grafico_testdrive';
 import './css-folder/MainApp.css';
 
-const MainApp = ({ onLogout, isAdmin }) => {
-  const navigate = useNavigate(); // Initialize navigate
-  const [activeComponent, setActiveComponent] = useState('grafico');
-  const [registros, setRegistros] = useState([]); // Lista de registros de saída
-  const [selectedRegistro, setSelectedRegistro] = useState(null); // Registro selecionado para confirmação
+const MainApp = ({ onLogout }) => {
+  const [activeComponent, setActiveComponent] = useState('grafico'); 
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const verifyAuth = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/verify`, {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-  // Troca o componente ativo na sidebar
-  const handleComponentChange = (component) => {
-    setActiveComponent(component);
-  };
+      const data = await response.json();
 
-  // Salva um novo registro e redireciona para a tela de confirmações
-  const handleSalvarRegistro = (novoRegistro) => {
-    setRegistros((prevRegistros) => [...prevRegistros, novoRegistro]);
-    setActiveComponent('confirmacoes'); // Redireciona para confirmações
+      if (data.isAuthenticated) {
+      } else {
+        window.location.href = '/login';
+      }
+    } catch (err) {
+      console.error('Erro de rede:', err);
+    }
   };
-
-  // Confirma a entrada e remove o registro da lista
-  const handleConfirmarEntrada = () => {
-    console.log('Registro enviado para entrada:', selectedRegistro);
-    setRegistros((prevRegistros) =>
-      prevRegistros.filter((registro) => registro !== selectedRegistro)
-    );
-    setSelectedRegistro(null); // Fecha o modal
-  };
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`
-    const parts = value.split(`; ${name}=`)
-    if (parts.length === 2) return parts.pop().split(";").shift()
-    return null
-  }
 
   useEffect(() => {
-    const token = getCookie("token");
-    if (!token) {
-      navigate('/login'); // Use navigate function for redirection
-    }
-  }, [navigate]); // Dependency array should include 'navigate'
+    verifyAuth();
+  }, [activeComponent]);
 
+const handleComponentChange = async (component) => {
+  setActiveComponent(component);
+};
   return (
     <div className="main-app-container">
       {/* Sidebar */}
@@ -58,48 +45,40 @@ const MainApp = ({ onLogout, isAdmin }) => {
       {/* Conteúdo Principal */}
       <div className="content">
         {/* Gráficos */}
-        {activeComponent === 'grafico' && <Grafico />}
+        {activeComponent === 'grafico' && (
+          <Grafico />
+        )}
         {/* Gráficos */}
-        {activeComponent === 'grafico testdrive' && <GraficoTestDrive />}
+        {activeComponent === 'grafico testdrive' && (
+          <GraficoTestDrive />
+        )}
 
         {/* Registros Gerais */}
         {activeComponent === 'registros' && (
-          <Registros 
-            registros={registros} // Lista geral de registros
-            onConfirm={(registro) => setSelectedRegistro(registro)} // Abre o modal de confirmação
-          />
+          <Registros />
         )}
 
         {/* Formulário de Cadastro de Clientes */}
-        {activeComponent === 'forms' && <ClientForm isAdmin={isAdmin} />}
+        {activeComponent === 'forms' && (
+          <ClientForm />
+        )}
 
         {/* Formulário de Registrar Saída */}
         {activeComponent === 'saida' && (
-          <SaidaForm onSalvar={handleSalvarRegistro} /> // Salvar novo registro de saída
+          <SaidaForm /> // Salvar novo registro de saída
         )}
 
         {/* Tela de Confirmações (usando RegistrosSaida) */}
         {activeComponent === 'confirmacoes' && (
-          <RegistrosSaida
-            registros={registros} // Lista de registros pendentes de confirmação
-            onConfirm={(registro) => setSelectedRegistro(registro)} // Seleciona o registro para confirmação
-          />
+          <RegistrosSaida />
         )}
 
-        {/* Tela de Registros de Entrada */}
-
         {/* Adicionar Motivos */}
-        {activeComponent === 'adicionar-motivos' && <AdicionarMotivos />}
+        {activeComponent === 'adicionar-motivos' && (
+          <AdicionarMotivos />
+        )}
+        
       </div>
-
-      {/* Modal de Confirmação */}
-      {selectedRegistro && (
-        <ConfirmacaoModal
-          registro={selectedRegistro} // Registro atual para confirmação
-          onConfirm={handleConfirmarEntrada} // Ação de confirmação
-          onCancel={() => setSelectedRegistro(null)} // Ação de cancelamento
-        />
-      )}
 
     </div>
   );

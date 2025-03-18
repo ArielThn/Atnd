@@ -7,7 +7,7 @@ const loadDataFromOracleToPostgres = async () => {
     let oracleConn;
     
     try {
-        console.log("Iniciando sincronização de dados Oracle para PostgreSQL...");
+        console.log("Iniciando sincronização de vendedores Oracle para PostgreSQL...");
 
         // Conectar ao Oracle e buscar dados
         oracleConn = await connectOracle();

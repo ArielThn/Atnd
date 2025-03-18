@@ -811,6 +811,14 @@ video {
   max-width: 48rem;
 }
 
+.max-w-\[100px\] {
+  max-width: 100px;
+}
+
+.max-w-\[120px\] {
+  max-width: 120px;
+}
+
 .max-w-\[150px\] {
   max-width: 150px;
 }
@@ -839,8 +847,8 @@ video {
   flex-grow: 1;
 }
 
-.table-auto {
-  table-layout: auto;
+.table-fixed {
+  table-layout: fixed;
 }
 
 @keyframes spin {

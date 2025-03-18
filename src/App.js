@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from '../src/login/Login';
-import Qrcode from '../src/templates-folder/qrcode.js';
+import Qrcode from '../src/atendimento/qrcode.js';
 import ProtectedRoute from '../src/ProtectedRoute';
 import MainApp from '../src/MainApp';
 import { ToastContainer } from 'react-toastify';
@@ -12,9 +12,6 @@ const apiUrl = process.env.REACT_APP_API_URL;
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // Estado para armazenar isAdmin
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const verifyAuth = async () => {
       try {
@@ -26,13 +23,9 @@ function App() {
         const data = await response.json();
 
         setIsAuthenticated(data.isAuthenticated);
-        setIsAdmin(data.isAdmin); // Captura o isAdmin corretamente
       } catch (err) {
         console.error('Erro de rede:', err);
         setIsAuthenticated(false);
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -41,7 +34,6 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    setIsAdmin(true);
     window.location.reload(); // Força um reload da página ao logar
   };
 
@@ -54,7 +46,6 @@ function App() {
 
       if (response.ok) {
         setIsAuthenticated(false);
-        setIsAdmin(false);
         window.location.href = '/login';
       } else {
         console.error('Falha ao fazer logout.');
@@ -78,7 +69,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <MainApp onLogout={handleLogout} isAdmin={isAdmin} />
+              <MainApp onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />

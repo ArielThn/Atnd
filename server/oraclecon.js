@@ -20,9 +20,7 @@ function decrypt(encryptedText) {
 }
 
 async function connectOracle() {
-    try {
-        console.log("Descriptografando credenciais...");
-        
+    try {        
         // Descriptografar credenciais antes de conectar
         const user = decrypt(process.env.ORACLE_USER);
         const password = decrypt(process.env.ORACLE_PASSWORD);

@@ -582,25 +582,22 @@ function ClientForm({ isAdmin }) {
                   <label htmlFor="nomeVendedor" className="block text-gray-700 font-medium mb-1">
                     Nome do Vendedor
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="nomeVendedor"
                     name="nomeVendedor"
-                    list="vendedores-list"
                     value={vendedorSelecionado}
                     onChange={(e) => setVendedorSelecionado(e.target.value)}
-                    placeholder="Selecione ou digite o nome do vendedor"
                     required
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
-                  />
-                  <datalist id="vendedores-list">
+                  >
+                    <option value="">Selecione ou digite o nome do vendedor</option>
                     {Array.isArray(vendedores) &&
                       vendedores.map((vendedor) => (
                         <option key={vendedor.id} value={vendedor.nome_vendedor}>
                           {vendedor.nome_vendedor}
                         </option>
                       ))}
-                  </datalist>
+                  </select>
                 </div>
               </div>
 

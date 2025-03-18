@@ -51,7 +51,6 @@
   "dev": "npm run start-client & npm run start-server",
   "start-client": "powershell -Command \"if ($env:NODE_ENV -eq 'development') { $env:PORT=3001 }; react-scripts start\"",
   "start-server": "nodemon server/index.js",
-  "server": "node server/index.js",
   "build": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts build",
   "watch": "npx tailwindcss -i ./src/css-folder/tailwindcss.css -o ./src/css-folder/style.css --watch"
 },

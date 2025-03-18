@@ -1,0 +1,2 @@
+[2025-02-27T17:21:07.994Z] IP: ::ffff:192.168.20.96 - GET /api/testdrive/contagem-vendedores?ano=2025&mes=2&dia=27 - Query: {"ano":"2025","mes":"2","dia":"27"}
+[2025-02-27T17:21:07.967Z] IP: ::ffff:192.168.20.96 - GET /api/testdrive/contagem-carros?ano=2025&mes=2&dia=27 - Query: {"ano":"2025","mes":"2","dia":"27"}
