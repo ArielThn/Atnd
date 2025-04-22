@@ -5,15 +5,19 @@ const { authenticate } = require('../controllers/authController'); // Importa o 
 const router = express.Router();
 
 router.post('/origem', async (req, res) => {
-  const { descricao } = req.body;
+  const { descricao, form_full } = req.body;
   try {
-    const result = await pool.query(`INSERT INTO origem (descricao) VALUES ($1) RETURNING *`, [descricao]);
+    const result = await pool.query(
+      `INSERT INTO origem (descricao, form_full) VALUES ($1, $2) RETURNING *`,
+      [descricao, form_full]
+    );
     res.status(201).json({ message: 'Origem adicionada com sucesso!', origem: result.rows[0] });
   } catch (error) {
     console.error('Erro ao adicionar origem:', error);
     res.status(500).json({ error: 'Erro ao adicionar origem' });
   }
 });
+
 router.post('/intencao-compra', async (req, res) => {
   const { descricao } = req.body;
   try {
@@ -82,5 +86,14 @@ router.post('/clientes', authenticate, async (req, res) => {
   }
 });
 
-
+router.post('/syonet', async (req, res) => {
+  try {
+    const { id, status } = req.body;
+    const result = await pool.query(`UPDATE formulario SET syonet = $1 WHERE id = $2`, [status, id]);
+    res.status(200).json({ message: 'Status atualizado com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    res.status(500).json({ error: 'Erro ao atualizar status' });
+  }
+});
 module.exports = router;

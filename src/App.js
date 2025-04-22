@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import {jwtDecode} from 'jwt-decode';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Login from '../src/login/Login';
-import Qrcode from '../src/atendimento/qrcode.js';
-import ProtectedRoute from '../src/ProtectedRoute';
-import MainApp from '../src/MainApp';
+import Login from './login/Login';
+import Qrcode from './atendimento/qrcode.js';
+import ProtectedRoute from './ProtectedRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Atendimento from './Atendimento.js';
+import Aniversariante from './Aniversariante.js';
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -54,7 +56,12 @@ function App() {
       console.error('Erro de rede:', err);
     }
   };
+  const token = document.cookie
+  .split('; ')
+  .find((row) => row.startsWith('token='))
+  ?.split('=')[1];
 
+  const decoded = token ? jwtDecode(token) : null;  
 
   return (
     <Router>
@@ -69,7 +76,12 @@ function App() {
           path="/"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <MainApp onLogout={handleLogout} />
+              {decoded && decoded.setor === 'atendimento' && (
+                <Atendimento onLogout={handleLogout} />
+              )}
+              {decoded && decoded.setor === 'aniversariante' && (
+                <Aniversariante onLogout={handleLogout} />
+              )}
             </ProtectedRoute>
           }
         />

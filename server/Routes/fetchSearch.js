@@ -19,7 +19,7 @@ router.get('/search', async (req, res) => {
     return res.status(400).json({ error: 'Faltando parâmetro: table' });
   }
 
-  const validTables = ['geral', 'saida', 'entrada', 'TestDrive'];
+  const validTables = ['geral', 'saida', 'entrada', 'aniversariantes'];
   if (!validTables.includes(table)) {
     return res.status(400).json({ error: 'Tabela não válida' });
   }
@@ -43,10 +43,11 @@ router.get('/search', async (req, res) => {
     dateField = 'data_horario';
     empresaField = 'id_empresa';
     extraCondition = ' AND data_retorno IS NOT NULL';
-  } else if (table === 'TestDrive') {
-    tableName = 'test_drive';
+  } else if (table === 'aniversariantes') {
+    tableName = 'formulario';
     dateField = 'data_cadastro';
     empresaField = 'empresa';
+    extraCondition = " AND origem = 'ANIVERSARIANTE'";
   }
 
   const parsedPage = parseInt(page, 10) || 1;
@@ -85,15 +86,13 @@ router.get('/search', async (req, res) => {
     if (data_inicio && data_fim) {
       if (data_inicio === data_fim) {
         // Se as datas forem iguais, filtra para o dia inteiro
-        query += ` AND ${dateField} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
-        countQuery += ` AND ${dateField} BETWEEN $${countQueryParams.length + 1} AND $${countQueryParams.length + 2}`;
-        const startDate = `${data_inicio} 00:00:00`;
-        const endDate = `${data_fim} 23:59:59`;
-        queryParams.push(startDate, endDate);
-        countQueryParams.push(startDate, endDate);
+        query += ` AND DATE(${dateField}) = $${queryParams.length + 1}`;
+        countQuery += ` AND DATE(${dateField}) = $${countQueryParams.length + 1}`;
+        queryParams.push(data_inicio);
+        countQueryParams.push(data_inicio);
       } else {
-        query += ` AND ${dateField} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
-        countQuery += ` AND ${dateField} BETWEEN $${countQueryParams.length + 1} AND $${countQueryParams.length + 2}`;
+        query += ` AND DATE(${dateField}) BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
+        countQuery += ` AND DATE(${dateField}) BETWEEN $${countQueryParams.length + 1} AND $${countQueryParams.length + 2}`;
         queryParams.push(data_inicio, data_fim);
         countQueryParams.push(data_inicio, data_fim);
       }

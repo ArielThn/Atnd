@@ -9,7 +9,7 @@ import AdicionarMotivos from './atendimento/cadastro-motivos';
 import GraficoTestDrive from './atendimento/grafico_testdrive';
 import './css-folder/MainApp.css';
 
-const MainApp = ({ onLogout }) => {
+const Atendimento = ({ onLogout }) => {
   const [activeComponent, setActiveComponent] = useState('grafico'); 
   const apiUrl = process.env.REACT_APP_API_URL;
   const verifyAuth = async () => {
@@ -84,4 +84,4 @@ const handleComponentChange = async (component) => {
   );
 };
 
-export default MainApp;
+export default Atendimento;

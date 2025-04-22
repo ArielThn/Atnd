@@ -1,0 +1,9 @@
+[2025-03-25T14:13:10.962Z] IP: ::ffff:192.168.20.96 - GET /api/testdrive/contagem-carros?ano=2025&mes=3&dia=25 - Query: {"ano":"2025","mes":"3","dia":"25"}
+[2025-03-25T14:13:10.965Z] IP: ::ffff:192.168.20.96 - GET /api/testdrive/contagem-vendedores?ano=2025&mes=3&dia=25 - Query: {"ano":"2025","mes":"3","dia":"25"}
+[2025-03-25T14:13:12.113Z] IP: ::ffff:192.168.20.96 - GET /api/formularios?data_inicio=&data_fim=&company=2&page=1 - Query: {"data_inicio":"","data_fim":"","company":"2","page":"1"}
+[2025-03-25T14:15:01.960Z] IP: ::ffff:192.168.20.96 - GET /api/testdrive/contagem-carros?ano=2025&mes=3&dia=25 - Query: {"ano":"2025","mes":"3","dia":"25"}
+[2025-03-25T14:15:01.967Z] IP: ::ffff:192.168.20.96 - GET /api/testdrive/contagem-vendedores?ano=2025&mes=3&dia=25 - Query: {"ano":"2025","mes":"3","dia":"25"}
+[2025-03-25T14:15:03.237Z] IP: ::ffff:192.168.20.96 - GET /api/formularios?data_inicio=&data_fim=&company=2&page=1 - Query: {"data_inicio":"","data_fim":"","company":"2","page":"1"}
+[2025-03-25T14:23:49.445Z] IP: ::ffff:192.168.20.96 - GET /api/formularios?data_inicio=&data_fim=&company=2&page=1 - Query: {"data_inicio":"","data_fim":"","company":"2","page":"1"}
+[2025-03-25T14:23:50.994Z] IP: ::ffff:192.168.20.96 - GET /api/historico-saida-pendentes?data_inicio=&data_fim=&company=2&page=1 - Query: {"data_inicio":"","data_fim":"","company":"2","page":"1"}
+[2025-03-25T14:23:51.795Z] IP: ::ffff:192.168.20.96 - GET /api/historico-entrada?data_inicio=&data_fim=&company=2&page=1 - Query: {"data_inicio":"","data_fim":"","company":"2","page":"1"}

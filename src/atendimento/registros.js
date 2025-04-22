@@ -354,6 +354,32 @@ const UserTable = () => {
     }
   };
 
+  const toggleCheckbox = async (id, status) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/syonet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id,
+          status
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update syonet status');
+      }
+
+      // Refresh data after successful update
+      fetchAppropriateData(generalPagination.currentPage);
+
+    } catch (error) {
+      console.error('Error updating syonet status:', error);
+      toast.error('Error updating syonet status');
+    }
+  }
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -479,6 +505,14 @@ const UserTable = () => {
       </td>
       <td className="p-3 truncate max-w-[100px]">
         {item.quantidade_acompanhantes}
+      </td>
+      <td className="p-3 text-center">
+        <input
+          type="checkbox"
+          checked={!!item.syonet}
+          onChange={(e) => toggleCheckbox(item.id, e.target.checked)}
+          className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+        />
       </td>
       <td className="p-3 flex space-x-2">
         <FaEdit
@@ -693,6 +727,7 @@ const UserTable = () => {
             "Veículo de Interesse",
             "Data",
             "Acompanhantes",
+            "SyoNet",
             "Ações",
           ],
           renderGeneralRow,

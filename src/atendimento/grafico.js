@@ -31,17 +31,7 @@ ChartJS.register(
   LineElement,
   ChartDataLabels
 );
-
-// Cores originais para os gráficos
-const carrosBackgroundColors = [
-  "#003366", "#004080", "#0059b3", "#0073e6", "#3399ff",
-];
-
-const origensBackgroundColors = [
-  "#003366", "#004080", "#0059b3", "#0073e6", "#3399ff",
-];
-
-const testDriveBackGroundColors = [
+const Colors = [
   "#003366", "#003b74", "#004080", "#00458f", "#004b9d",
   "#0051ac", "#0057ba", "#005db9", "#0063c7", "#0069d5", 
   "#0070e3", "#0076f2", "#007cf0", "#0082ef", "#0088ed", 
@@ -301,7 +291,7 @@ function Dashboard() {
         labels: intencaoLabels,
         datasets: [{
           data: intencaoQuantidades,
-          backgroundColor: carrosBackgroundColors,
+          backgroundColor: Colors,
         }],
       });
 
@@ -365,7 +355,7 @@ function Dashboard() {
         labels: carroLabels,
         datasets: [{
           data: carroQuantidades,
-          backgroundColor: carrosBackgroundColors,
+          backgroundColor: Colors,
         }],
       });
 
@@ -467,7 +457,7 @@ function Dashboard() {
         labels: origemLabels,
         datasets: [{
           data: origemQuantidades,
-          backgroundColor: origensBackgroundColors,
+          backgroundColor: Colors,
         }],
       });
 
@@ -519,7 +509,7 @@ function Dashboard() {
         labels: vendedorLabels,
         datasets: [{
           data: vendedorQuantidades,
-          backgroundColor: testDriveBackGroundColors,
+          backgroundColor: Colors,
         }],
       });
   
@@ -562,7 +552,7 @@ function Dashboard() {
         labels: origemLabels,
         datasets: [{
           data: origemQuantidades,
-          backgroundColor: testDriveBackGroundColors,
+          backgroundColor: Colors,
         }],
       });
   

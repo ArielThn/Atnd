@@ -1,0 +1,120 @@
+# DOCUMENTAÇÃO DA API - SERVIDOR ATND
+
+## Rotas de Autenticação
+- **POST /register**: Registrar novo usuário
+- **POST /login**: Login de usuário
+- **GET /verify**: Verificar autenticação do usuário
+- **POST /logout**: Logout do usuário
+
+## Rotas de Formulário
+- **GET /formularios**: Obter registros de formulários paginados com filtros por período e empresa
+  - Parâmetros de consulta: data_inicio, data_fim, company, page
+  - Requer autenticação
+  - Retorna resultados paginados com contagem total
+
+- **GET /aniversariantes**: Obter registros de aniversariantes paginados com filtros
+  - Parâmetros de consulta: data_inicio, data_fim, company, page
+  - Requer autenticação
+  - Retorna apenas registros com origem='ANIVERSARIANTE'
+
+- **PUT /formularios/:id**: Atualizar registro de formulário
+  - Parâmetros: id
+  - Corpo: nome, telefone, cpf, origem, intencao_compra, veiculo_interesse, vendedor, data_cadastro
+  - Atualiza informações do vendedor se fornecidas
+
+## Rotas de Origem
+- **GET /origem**: Obter todos os registros de origem
+- **POST /origem**: Adicionar nova origem
+  - Corpo: descricao, form_full
+- **DELETE /origem/:id**: Excluir registro de origem
+
+## Rotas de Intenção de Compra
+- **POST /intencao-compra**: Adicionar nova intenção de compra
+  - Corpo: descricao
+- **DELETE /intencao-compra/:id**: Excluir intenção de compra
+
+## Rotas de Veículos
+- **GET /veiculos**: Obter todos os registros de interesse em veículos
+- **GET /veiculos-interesse**: Obter modelos de veículos distintos
+- **POST /veiculos**: Adicionar novo interesse em veículo
+  - Corpo: descricao
+- **DELETE /veiculos/:id**: Excluir interesse em veículo
+
+## Rotas de Cliente
+- **POST /clientes**: Registrar novo cliente
+  - Corpo: acompanhantes, cpf, intencaoCompra, nome, origem, telefone, veiculoInteresse, vendedor, horario
+  - Requer autenticação
+
+## Rotas Syonet
+- **POST /syonet**: Atualizar status do syonet
+  - Corpo: id, status
+
+## Rotas de Vendedores
+- **GET /vendedores**: Obter vendedores ativos da empresa do usuário
+  - Requer autenticação
+
+## Rotas de Carros
+- **GET /carros**: Obter carros disponíveis para a empresa do usuário
+  - Usa token JWT para identificação da empresa
+- **POST /carros/cadastrar**: Registrar novo carro
+  - Corpo: modelo, placa, id_empresa
+- **DELETE /carro/:id**: Excluir carro
+
+## Rotas de Motivos de Saída
+- **GET /motivos-saida**: Obter motivos de saída para a empresa do usuário
+  - Usa token JWT para identificação da empresa
+- **POST /motivos/cadastrar**: Registrar novo motivo de saída
+  - Corpo: descricao
+  - Usa token JWT para identificação da empresa
+- **GET /motivos/listar**: Listar motivos de saída para a empresa do usuário
+  - Usa token JWT para identificação da empresa
+- **DELETE /motivo/:id**: Excluir motivo de saída
+
+## Rotas de Saída
+- **POST /registrar-saida**: Registrar saída de carro
+  - Corpo: nome_cliente, rg_cliente, cpf_cliente, cnh_cliente, nome_vendedor, data_horario, observacao, carro, motivo, placa, foto_cnh, termo_responsabilidade
+  - Usa token JWT para identificação da empresa
+  - Atualiza status de disponibilidade do carro
+
+## Rotas de Entrada
+- **POST /registrar-entrada**: Registrar retorno de carro
+  - Corpo: id_saida, usuario, nome_vendedor, data_horario, observacao, carro, placa, id_carro, id_motivo, id_empresa
+  - Atualiza status de disponibilidade do carro
+- **GET /historico-saida-pendentes**: Obter registros pendentes de saída paginados
+  - Parâmetros de consulta: data_inicio, data_fim, company, page
+- **GET /historico-entrada**: Obter registros de entrada paginados
+  - Parâmetros de consulta: data_inicio, data_fim, company, page
+
+## Rotas de Documentos de Saída
+- **POST /docs**: Verificar documentos pendentes
+  - Corpo: nome, data
+- **POST /registrar_docs**: Registrar documentos para saída de carro
+  - Formulário multipart: arquivo (PDF), cnh_foto (imagem), nome, data
+
+## Rotas de Imagem
+- **GET /foto_cnh/:id**: Obter foto da CNH para um registro de saída específico
+- **GET /termo_responsabilidade/:id**: Obter PDF do termo de responsabilidade para um registro de saída específico
+
+## Rotas de Busca de Dados
+- **GET /dados**: Obter dados com busca e filtros
+  - Parâmetros de consulta: search, table, data_inicio, data_fim
+  - Tabelas válidas: geral, saida, entrada, TestDrive
+- **GET /date-options/:table**: Obter opções de data disponíveis para uma tabela específica
+  - Parâmetros: table
+  - Parâmetros de consulta: empresa
+
+## Rotas de Sincronização
+- **GET /sync**: Acionar sincronização de dados do Oracle para o Postgres
+
+## Rotas de Gráficos
+- **GET /graficos/empresa-diario-aniv/:ano/:mes**: Obter dados de aniversários para gráficos por empresa e data
+- **GET /graficos/contagens-aniv/:ano/:mes/:dia**: Obter contagens de aniversários para gráficos
+- **GET /testdrive/contagem-saidas**: Obter contagens de saídas de test drive
+  - Parâmetros de consulta: ano, mes, dia
+- **GET /testdrive/contagem-carros**: Obter contagens de test drive por carro
+  - Parâmetros de consulta: ano, mes, dia
+- **GET /testdrive/contagem-vendedores**: Obter contagens de test drive por vendedor
+  - Parâmetros de consulta: ano, mes, dia
+
+## Rotas de Usuário
+- **GET /TodosUsuarios**: Obter todos os usuários ativos

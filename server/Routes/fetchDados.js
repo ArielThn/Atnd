@@ -78,12 +78,10 @@ router.get('/dados', async (req, res) => {
     if (data_inicio && data_fim) {
       if (data_inicio === data_fim) {
         // Se as datas forem iguais, filtra para o dia inteiro
-        query += ` AND ${dateField} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
-        const startDate = `${data_inicio} 00:00:00`;
-        const endDate = `${data_fim} 23:59:59`;
-        queryParams.push(startDate, endDate);
+        query += ` AND DATE(${dateField}) = $${queryParams.length + 1}`;
+        queryParams.push(data_inicio);
       } else {
-        query += ` AND ${dateField} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
+        query += ` AND DATE(${dateField}) BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
         queryParams.push(data_inicio, data_fim);
       }
     }

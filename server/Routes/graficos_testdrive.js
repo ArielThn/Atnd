@@ -4,12 +4,6 @@ const pool = require('../db');
 const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config/config');
 
-/**
- * Retorna o intervalo de datas com base em ano, mes e dia.
- * - Se mes === "all": retorna o ano inteiro (dia é ignorado).
- * - Se dia === "all": retorna o mês inteiro.
- * - Caso contrário, retorna o intervalo do dia informado.
- */
 function getDateRange(ano, mes, dia) {
   if (mes === "all") {
     return {
@@ -29,13 +23,6 @@ function getDateRange(ano, mes, dia) {
   };
 }
 
-/* 
-  Endpoint: /testdrive/contagem-saidas
-  - Conta quantos registros de saída (com data_retorno preenchida) ocorreram no intervalo.
-  - Parâmetros via query: ano, mes e dia.
-  - Se mes === "all", ignora o parâmetro dia.
-  - Se o usuário não for admin, filtra pelo id_empresa.
-*/
 router.get('/testdrive/contagem-saidas', async (req, res) => {
   let { ano, mes, dia } = req.query;
   if (!dia) {

@@ -93,7 +93,7 @@ const loginUser = async (req, res) => {
     };
 
     // Gera o token JWT
-    const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+    const token = jwt.sign(payload, secretKey, { expiresIn: '8h' });
 
     res.cookie('token', token, {
       path: '/',

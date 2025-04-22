@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css-folder/forms.css';
-
+import { jwtDecode } from 'jwt-decode';
 const apiUrl = process.env.REACT_APP_API_URL;
 
 // Função auxiliar para obter a data/hora atual formatada para "YYYY-MM-DDTHH:MM"
@@ -16,7 +16,7 @@ const getCurrentDateTime = () => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-function ClientForm({ isAdmin }) {
+function ClientForm() {
   const [origins, setOrigins] = useState([]);
   const [intentions, setIntentions] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -36,10 +36,21 @@ function ClientForm({ isAdmin }) {
   const [showIntencaoInput, setShowIntencaoInput] = useState(false);
   const [newVeiculo, setNewVeiculo] = useState('');
   const [showVeiculoInput, setShowVeiculoInput] = useState(false);
+  
+  // Novo estado para controlar o switch do form_full
+  const [isFullFormOrigin, setIsFullFormOrigin] = useState(false);
 
   const origemInputRef = useRef(null);
   const intencaoInputRef = useRef(null);
   const veiculoInputRef = useRef(null);
+
+
+  const token = document.cookie
+  .split('; ')
+  .find((row) => row.startsWith('token='))
+  ?.split('=')[1];
+
+  const decoded = token ? jwtDecode(token) : null;  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -187,7 +198,8 @@ function ClientForm({ isAdmin }) {
       const response = await fetch(`${apiUrl}/api/origem`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ descricao: upper }),
+        // Inclui o campo form_full de acordo com o switch: 1 se estiver marcado, 0 caso contrário.
+        body: JSON.stringify({ descricao: upper, form_full: isFullFormOrigin ? 1 : 0 }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -274,7 +286,7 @@ function ClientForm({ isAdmin }) {
   
     // Remove aspas e caracteres especiais do nome
     const cleanNome = removeQuotes(nome.trimEnd())
-      .replace(/[^\w\sÀ-ÿ]/g, ''); // Remove qualquer caractere que não seja alfanumérico, espaço ou letras acentuadas
+      .replace(/[^\w\sÀ-ÿ]/g, '');
   
     const formData = {
       nome: cleanNome,
@@ -403,7 +415,7 @@ function ClientForm({ isAdmin }) {
               {origins.map((origin) => (
                 <label className="flex items-center justify-between px-4" key={origin.id}>
                   <span className="text-gray-800 flex items-center space-x-2">
-                    {isAdmin && (
+                    {decoded.isAdmin && (
                       <span className="text-red-700 cursor-pointer" onClick={() => deletarOrigem(origin.id)}>
                         X
                       </span>
@@ -423,15 +435,23 @@ function ClientForm({ isAdmin }) {
               ))}
             </div>
             {showOrigemInput ? (
-              <div ref={origemInputRef} className="flex items-center space-x-4 mt-4">
+              <div ref={origemInputRef} className="flex flex-col mt-4 space-y-4">
                 <input
                   type="text"
                   placeholder="Nova Origem"
                   value={newOrigem}
                   onChange={(e) => setNewOrigem(e.target.value)}
                   maxLength={30}
-                  className="flex-grow p-2 border border-gray-300 rounded-md"
+                  className="p-2 border border-gray-300 rounded-md"
                 />
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={isFullFormOrigin}
+                    onChange={(e) => setIsFullFormOrigin(e.target.checked)}
+                  />
+                  <span className="ml-2">Formulário completo?</span>
+                </label>
                 <button
                   type="button"
                   onClick={addNewOrigem}
@@ -451,158 +471,158 @@ function ClientForm({ isAdmin }) {
             )}
           </div>
 
-          {origem && origem !== 'ANIVERSARIANTE' && (
-            <>
-              <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
-                <h3 className="text-[#001e50] text-xl font-bold">3. Intenção de Compra *</h3>
-                <div className="flex flex-col space-y-4">
-                  {intentions.map((intention) => (
-                    <label className="flex items-center justify-between px-4" key={intention.id}>
-                      <span className="text-gray-800 flex items-center space-x-2">
-                        {isAdmin && (
-                          <span className="text-red-700 cursor-pointer" onClick={() => deletarIntencaoCompra(intention.id)}>
-                            X
-                          </span>
-                        )}
-                        <span>{intention.descricao}</span>
-                      </span>
+          {origem &&
+            origins.find((item) => item.descricao === origem)?.form_full === 1 && (
+              <>
+                <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
+                  <h3 className="text-[#001e50] text-xl font-bold">3. Intenção de Compra *</h3>
+                  <div className="flex flex-col space-y-4">
+                    {intentions.map((intention) => (
+                      <label className="flex items-center justify-between px-4" key={intention.id}>
+                        <span className="text-gray-800 flex items-center space-x-2">
+                          {decoded.isAdmin && (
+                            <span className="text-red-700 cursor-pointer" onClick={() => deletarIntencaoCompra(intention.id)}>
+                              X
+                            </span>
+                          )}
+                          <span>{intention.descricao}</span>
+                        </span>
+                        <input
+                          type="radio"
+                          name="intention"
+                          value={intention.descricao}
+                          required
+                          checked={intencaoCompra === intention.descricao}
+                          onChange={(e) => setIntencaoCompra(e.target.value)}
+                          className="mr-5 cursor-pointer"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  {showIntencaoInput ? (
+                    <div ref={intencaoInputRef} className="flex items-center space-x-4 mt-4">
                       <input
-                        type="radio"
-                        name="intention"
-                        value={intention.descricao}
-                        required
-                        checked={intencaoCompra === intention.descricao}
-                        onChange={(e) => setIntencaoCompra(e.target.value)}
-                        className="mr-5 cursor-pointer"
+                        type="text"
+                        placeholder="Nova Intenção"
+                        value={newIntencao}
+                        onChange={(e) => setNewIntencao(e.target.value)}
+                        maxLength={30}
+                        className="flex-grow p-2 border border-gray-300 rounded-md"
                       />
-                    </label>
-                  ))}
+                      <button
+                        type="button"
+                        onClick={addNewIntencao}
+                        className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
+                      >
+                        Salvar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowIntencaoInput(true)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+                    >
+                      Adicionar Intenção
+                    </button>
+                  )}
                 </div>
-                {showIntencaoInput ? (
-                  <div ref={intencaoInputRef} className="flex items-center space-x-4 mt-4">
-                    <input
-                      type="text"
-                      placeholder="Nova Intenção"
-                      value={newIntencao}
-                      onChange={(e) => setNewIntencao(e.target.value)}
-                      maxLength={30}
-                      className="flex-grow p-2 border border-gray-300 rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={addNewIntencao}
-                      className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
-                    >
-                      Salvar
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowIntencaoInput(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
-                  >
-                    Adicionar Intenção
-                  </button>
-                )}
-              </div>
 
-              <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
-                <h3 className="text-[#001e50] text-xl font-bold">4. Quantidade de Acompanhantes</h3>
-                <input
-                  type="text"
-                  placeholder="Digite o número de acompanhantes"
-                  value={acompanhantes}
-                  onChange={(e) => handleNumericInput(e, setAcompanhantes)}
-                  maxLength={1}
-                  className="p-2 border border-gray-300 rounded-md text-base text-gray-800 w-full"
-                />
-              </div>
+                <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
+                  <h3 className="text-[#001e50] text-xl font-bold">4. Quantidade de Acompanhantes</h3>
+                  <input
+                    type="text"
+                    placeholder="Digite o número de acompanhantes"
+                    value={acompanhantes}
+                    onChange={(e) => handleNumericInput(e, setAcompanhantes)}
+                    maxLength={1}
+                    className="p-2 border border-gray-300 rounded-md text-base text-gray-800 w-full"
+                  />
+                </div>
 
-              <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
-                <h3 className="text-[#001e50] text-xl font-bold">5. Veículo de Interesse *</h3>
-                <select
-                  name="vehicle-interest"
-                  required
-                  value={veiculoInteresse}
-                  onChange={(e) => setVeiculoInteresse(e.target.value)}
-                  className="p-2 border border-gray-300 rounded-md text-base text-gray-800 w-full"
-                >
-                  <option value="" disabled>Selecione Algum Veículo de Interesse</option>
-                  {vehicles.map((vehicle) => (
-                    <option key={vehicle.id} value={vehicle.descricao}>
-                      {vehicle.descricao}
-                    </option>
-                  ))}
-                </select>
-                {isAdmin &&
-                  vehicles.map((carro) => (
-                    <label className="flex items-center justify-between px-4" key={carro.id}>
-                      <span className="text-gray-800 flex items-center space-x-2">
-                        {isAdmin && (
-                          <span className="text-red-700 cursor-pointer" onClick={() => deletarVeiculoInteresse(carro.id)}>
-                            X
-                          </span>
-                        )}
-                        <span>{carro.descricao}</span>
-                      </span>
-                    </label>
-                  ))}
-                {showVeiculoInput ? (
-                  <div ref={veiculoInputRef} className="flex items-center space-x-4 mt-4">
-                    <input
-                      type="text"
-                      placeholder="Novo Veículo"
-                      value={newVeiculo}
-                      onChange={(e) => setNewVeiculo(e.target.value)}
-                      className="flex-grow p-2 border border-gray-300 rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={addNewVeiculo}
-                      className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
-                    >
-                      Salvar
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowVeiculoInput(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
-                  >
-                    Adicionar Veículo
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-[#001e50] text-xl font-bold">6. Vendedor *</h3>
-                <div className="relative w-full">
-                  <label htmlFor="nomeVendedor" className="block text-gray-700 font-medium mb-1">
-                    Nome do Vendedor
-                  </label>
+                <div className="space-y-4 border-b-2 border-[#001e50] pb-6">
+                  <h3 className="text-[#001e50] text-xl font-bold">5. Veículo de Interesse *</h3>
                   <select
-                    id="nomeVendedor"
-                    name="nomeVendedor"
-                    value={vendedorSelecionado}
-                    onChange={(e) => setVendedorSelecionado(e.target.value)}
+                    name="vehicle-interest"
                     required
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+                    value={veiculoInteresse}
+                    onChange={(e) => setVeiculoInteresse(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md text-base text-gray-800 w-full"
                   >
-                    <option value="">Selecione ou digite o nome do vendedor</option>
-                    {Array.isArray(vendedores) &&
-                      vendedores.map((vendedor) => (
-                        <option key={vendedor.id} value={vendedor.nome_vendedor}>
-                          {vendedor.nome_vendedor}
-                        </option>
-                      ))}
+                    <option value="" disabled>Selecione Algum Veículo de Interesse</option>
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.descricao}>
+                        {vehicle.descricao}
+                      </option>
+                    ))}
                   </select>
+                  {decoded.isAdmin &&
+                    vehicles.map((carro) => (
+                      <label className="flex items-center justify-between px-4" key={carro.id}>
+                        <span className="text-gray-800 flex items-center space-x-2">
+                          {decoded.isAdmin && (
+                            <span className="text-red-700 cursor-pointer" onClick={() => deletarVeiculoInteresse(carro.id)}>
+                              X
+                            </span>
+                          )}
+                          <span>{carro.descricao}</span>
+                        </span>
+                      </label>
+                    ))}
+                  {showVeiculoInput ? (
+                    <div ref={veiculoInputRef} className="flex items-center space-x-4 mt-4">
+                      <input
+                        type="text"
+                        placeholder="Novo Veículo"
+                        value={newVeiculo}
+                        onChange={(e) => setNewVeiculo(e.target.value)}
+                        className="flex-grow p-2 border border-gray-300 rounded-md"
+                      />
+                      <button
+                        type="button"
+                        onClick={addNewVeiculo}
+                        className="bg-green-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-600"
+                      >
+                        Salvar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowVeiculoInput(true)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 mt-4"
+                    >
+                      Adicionar Veículo
+                    </button>
+                  )}
                 </div>
-              </div>
 
-            </>
-          )}
+                <div className="space-y-4">
+                  <h3 className="text-[#001e50] text-xl font-bold">6. Vendedor *</h3>
+                  <div className="relative w-full">
+                    <label htmlFor="nomeVendedor" className="block text-gray-700 font-medium mb-1">
+                      Nome do Vendedor
+                    </label>
+                    <select
+                      id="nomeVendedor"
+                      name="nomeVendedor"
+                      value={vendedorSelecionado}
+                      onChange={(e) => setVendedorSelecionado(e.target.value)}
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+                    >
+                      <option value="">Selecione ou digite o nome do vendedor</option>
+                      {Array.isArray(vendedores) &&
+                        vendedores.map((vendedor) => (
+                          <option key={vendedor.id} value={vendedor.nome_vendedor}>
+                            {vendedor.nome_vendedor}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
 
           <div className="space-y-4">
             <h3 className="text-[#001e50] text-xl font-bold">7. Data e Hora *</h3>

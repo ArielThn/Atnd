@@ -32,6 +32,7 @@ const imageRoute = require('./Routes/imageRoute.js');
 const fetchSearch = require('./Routes/fetchSearch.js');
 const dateOptions = require('./Routes/date-options.js');
 const fetchDados = require('./Routes/fetchDados.js');
+const grafico_aniv = require('./Routes/grafico_aniv');
 const { startScheduler } = require('./sheduler');
 const { syncUsuariosAtivos } = require('./utils/syncUsuarios');
 const { loadDataFromOracleToPostgres } = require('./syncService.js');
@@ -109,6 +110,7 @@ try {
   app.use('/api', fetchSearch);
   app.use('/api', dateOptions);
   app.use('/api', fetchDados);
+  app.use('/api', grafico_aniv)
 } catch (error) {
   console.error('Erro ao configurar as rotas:', error.message);
   process.exit(1);
